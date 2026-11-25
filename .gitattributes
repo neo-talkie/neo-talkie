@@ -1,0 +1,2 @@
+# Preserve the upstream font notice byte-for-byte.
+tools/simulator/assets/NOTICE whitespace=-blank-at-eof

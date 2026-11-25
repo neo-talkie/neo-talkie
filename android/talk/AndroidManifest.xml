@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.talk" android:versionCode="6" android:versionName="0.2.2">
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="22" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.neotalkie.launcher.permission.CONTROL" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <application android:label="NeoTalkie对讲" android:icon="@drawable/ic_neotalkie" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:debuggable="true">
+
+      <activity android:name="com.neotalkie.device.TalkMenuActivity" android:exported="false" android:screenOrientation="landscape" />
+      <activity android:name="com.neotalkie.device.ServiceStatusActivity" android:exported="false" android:screenOrientation="landscape" />
+      <activity android:name="com.neotalkie.device.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTop">
+        <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+      </activity>
+    </application>
+</manifest>

@@ -1,0 +1,31 @@
+name: Device checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - run: make setup
+      - run: bash tools/ui/ci-android.sh
+      - run: make test
+      - run: cd tools && npx --no-install playwright install --with-deps chromium
+      - run: make ui-visual
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neotalkie-development-build
+          path: |
+            android/launcher/build/neotalkie-launcher.apk
+            android/talk/build/neotalkie-talk.apk
+            data/ui-regression/latest/

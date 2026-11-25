@@ -1,0 +1,15 @@
+node_modules/
+.tools/
+data/
+build/
+dist/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.DS_Store
+*.keystore
+*.jks
+*.pcm
+*.wav

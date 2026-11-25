@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.launcher" android:versionCode="6" android:versionName="0.2.2">
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="22" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="com.neotalkie.launcher.permission.CONTROL" />
+    <permission android:name="com.neotalkie.launcher.permission.CONTROL" android:protectionLevel="signature" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <application android:label="NeoTalkie桌面" android:icon="@drawable/ic_neotalkie" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:debuggable="true">
+    <activity android:name="com.neotalkie.device.BleSetupActivity" android:exported="false" android:screenOrientation="landscape" />
+    <activity android:name="com.neotalkie.device.StatusActivity" android:exported="true" android:permission="com.neotalkie.launcher.permission.CONTROL" android:screenOrientation="landscape" />
+      <provider android:name="com.neotalkie.device.PttStateProvider" android:authorities="com.neotalkie.launcher.ptt" android:exported="true" android:permission="com.neotalkie.launcher.permission.CONTROL" />
+      <activity android:name="com.neotalkie.device.HomeActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
+        <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
+        <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+      </activity>
+    </application>
+</manifest>

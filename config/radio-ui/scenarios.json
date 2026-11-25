@@ -1,0 +1,1509 @@
+[
+  {
+    "id": "ready",
+    "group": "对话流程",
+    "name": "新对话",
+    "note": "两行大字 · 等待按下 PTT",
+    "phase": "idle"
+  },
+  {
+    "id": "continue",
+    "group": "对话流程",
+    "name": "继续追问",
+    "note": "五分钟上下文 · 可创建新对话",
+    "phase": "idle",
+    "hasContext": true
+  },
+  {
+    "id": "listening",
+    "group": "对话流程",
+    "name": "正在听",
+    "note": "PTT 电平 · 固定讲话提示",
+    "phase": "listening",
+    "elapsed": 12000,
+    "level": 65,
+    "transcript": "安康鱼是什么"
+  },
+  {
+    "id": "recognizing",
+    "group": "对话流程",
+    "name": "识别收尾",
+    "note": "松手后仅显示状态，不显示 ASR",
+    "phase": "recognizing",
+    "processingElapsed": 300,
+    "transcript": "安康鱼是什么",
+    "text": {
+      "copy": "please_wait"
+    }
+  },
+  {
+    "id": "thinking",
+    "group": "对话流程",
+    "name": "思考中",
+    "note": "两行系统提示",
+    "phase": "thinking",
+    "processingElapsed": 900,
+    "transcript": "安康鱼是什么",
+    "text": {
+      "copy": "please_wait"
+    }
+  },
+  {
+    "id": "searching",
+    "group": "对话流程",
+    "name": "联网查询",
+    "note": "查询状态与提示",
+    "phase": "searching",
+    "transcript": "安康鱼是什么",
+    "text": {
+      "copy": "please_wait"
+    }
+  },
+  {
+    "id": "synthesizing",
+    "group": "对话流程",
+    "name": "合成中",
+    "note": "开始生成回答",
+    "phase": "synthesizing",
+    "processingElapsed": 2000,
+    "transcript": "安康鱼是什么",
+    "text": "安康鱼是一种海底鱼类。"
+  },
+  {
+    "id": "short-answer",
+    "group": "对话流程",
+    "name": "短回答",
+    "note": "正文从首行开始",
+    "phase": "speaking",
+    "text": "答案是三。"
+  },
+  {
+    "id": "long-answer",
+    "group": "对话流程",
+    "name": "长回答 / 翻行",
+    "note": "四行大字 · 上下键翻看",
+    "phase": "speaking",
+    "text": "安康鱼生活在海底，头上有像钓竿的发光器，利用光线吸引猎物，然后突然张开大嘴捕食。它的外形很特别，也叫灯笼鱼。"
+  },
+  {
+    "id": "finished",
+    "group": "对话流程",
+    "name": "播报完成",
+    "note": "3 秒保留 · 翻看延长至 5 秒",
+    "phase": "finished",
+    "text": "安康鱼生活在海底，头上有像钓竿的发光器，利用光线吸引猎物，然后突然张开大嘴捕食。它的外形很特别，也叫灯笼鱼。"
+  },
+  {
+    "id": "volume",
+    "group": "边界与反馈",
+    "name": "调整音量",
+    "note": "两行横条 · 原厂 0–5 档",
+    "volume": 3,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "limit",
+    "group": "边界与反馈",
+    "name": "录音即将到限",
+    "note": "30 秒上限 · 自动提交",
+    "phase": "listening",
+    "elapsed": 29000,
+    "level": 20
+  },
+  {
+    "id": "weak-wifi",
+    "group": "边界与反馈",
+    "name": "弱信号 / 低电量",
+    "note": "灰色外弧 · 白色电池",
+    "wifi": 1,
+    "battery": 12
+  },
+  {
+    "id": "charging",
+    "group": "边界与反馈",
+    "name": "正在充电",
+    "note": "白色闪电 · 保留电量刻度",
+    "charging": true,
+    "battery": 52
+  },
+  {
+    "id": "offline",
+    "group": "边界与反馈",
+    "name": "网络未连接",
+    "note": "离线提示",
+    "title": {
+      "copy": "offline"
+    },
+    "text": {
+      "copy": "connect_wifi"
+    }
+  },
+  {
+    "id": "error",
+    "group": "边界与反馈",
+    "name": "服务异常",
+    "note": "两行错误提示",
+    "phase": "error",
+    "text": {
+      "copy": "text_142"
+    }
+  },
+  {
+    "id": "too-short",
+    "group": "边界与反馈",
+    "name": "说话太短",
+    "note": "不超过一秒 · 丢弃识别并跳过生成",
+    "phase": "tooShort",
+    "text": {
+      "copy": "repeat_speech"
+    }
+  },
+  {
+    "id": "nospeech",
+    "group": "边界与反馈",
+    "name": "没听清",
+    "note": "空转写提示",
+    "phase": "nospeech",
+    "text": {
+      "copy": "repeat_speech"
+    }
+  },
+  {
+    "id": "device",
+    "group": "系统页面",
+    "name": "设备状态",
+    "note": "设备、电池、内存与音量",
+    "view": "device"
+  },
+  {
+    "id": "network",
+    "group": "系统页面",
+    "name": "网络状态",
+    "note": "Wi-Fi 与连接信息",
+    "view": "network"
+  },
+  {
+    "id": "checks",
+    "group": "系统页面",
+    "name": "连通检测",
+    "note": "模拟检测 · 无外部请求",
+    "view": "checks"
+  },
+  {
+    "id": "results",
+    "group": "系统页面",
+    "name": "检测结果",
+    "note": "模拟结果 · 翻页查看",
+    "view": "results"
+  },
+  {
+    "id": "home",
+    "group": "系统页面",
+    "name": "NeoTalkie 桌面",
+    "note": "上下选择 · 确认打开",
+    "view": "home"
+  },
+  {
+    "id": "sleep",
+    "group": "系统页面",
+    "name": "息屏",
+    "note": "按电源键返回",
+    "view": "sleep"
+  },
+  {
+    "id": "unconfigured",
+    "group": "系统提示",
+    "name": "待配置 / 请先配置",
+    "note": "固定两行，不展开",
+    "phase": "unconfigured",
+    "text": {
+      "copy": "text_122"
+    }
+  },
+  {
+    "id": "audio-busy",
+    "group": "系统提示",
+    "name": "暂不可用 / 音频被占用",
+    "note": "固定两行，不展开",
+    "phase": "busy",
+    "text": {
+      "copy": "audio_busy"
+    }
+  },
+  {
+    "id": "clear-failed",
+    "group": "系统提示",
+    "name": "清除失败 / 请稍后重试",
+    "note": "固定两行，不展开",
+    "phase": "clearFailed",
+    "text": {
+      "copy": "text_129"
+    }
+  },
+  {
+    "id": "record-check",
+    "group": "系统提示",
+    "name": "录音检查 / 录制3秒",
+    "note": "固定两行，不展开",
+    "phase": "recordCheck",
+    "text": {
+      "copy": "text_042"
+    }
+  },
+  {
+    "id": "playback-check",
+    "group": "系统提示",
+    "name": "回放检查 / 正在回放",
+    "note": "固定两行，不展开",
+    "phase": "playbackCheck",
+    "text": {
+      "copy": "playback_active"
+    }
+  },
+  {
+    "id": "check-done",
+    "group": "系统提示",
+    "name": "检查完成 / 已自动停止",
+    "note": "固定两行，不展开",
+    "phase": "checkDone",
+    "text": {
+      "copy": "capture_auto_stop"
+    }
+  },
+  {
+    "id": "capture-stopped",
+    "group": "系统提示",
+    "name": "检查完成 / 已停止录音",
+    "note": "固定两行，不展开",
+    "phase": "checkDone",
+    "text": {
+      "copy": "capture_stopped"
+    }
+  },
+  {
+    "id": "capture-peak",
+    "group": "系统提示",
+    "name": "检查完成 / 峰值32768",
+    "note": "固定两行，不展开",
+    "phase": "checkDone",
+    "text": "峰值32768"
+  },
+  {
+    "id": "capture-failed",
+    "group": "系统提示",
+    "name": "检查失败 / 检查诊断文件",
+    "note": "固定两行，不展开",
+    "phase": "checkFailed",
+    "text": {
+      "copy": "text_072"
+    }
+  },
+  {
+    "id": "stopped",
+    "group": "系统提示",
+    "name": "已停止 / 已停止",
+    "note": "固定两行，不展开",
+    "phase": "idle",
+    "text": {
+      "copy": "text_033"
+    }
+  },
+  {
+    "id": "error-请先配置",
+    "group": "系统提示",
+    "name": "连接失败 / 请先配置",
+    "note": "安全错误文案",
+    "phase": "error",
+    "text": {
+      "copy": "text_122"
+    }
+  },
+  {
+    "id": "error-录音异常",
+    "group": "系统提示",
+    "name": "连接失败 / 录音异常",
+    "note": "安全错误文案",
+    "phase": "error",
+    "text": "录音异常"
+  },
+  {
+    "id": "error-播放异常",
+    "group": "系统提示",
+    "name": "连接失败 / 播放异常",
+    "note": "安全错误文案",
+    "phase": "error",
+    "text": "播放异常"
+  },
+  {
+    "id": "error-请检查网络",
+    "group": "系统提示",
+    "name": "连接失败 / 请检查网络",
+    "note": "安全错误文案",
+    "phase": "error",
+    "text": "请检查网络"
+  },
+  {
+    "id": "error-请稍后重试",
+    "group": "系统提示",
+    "name": "连接失败 / 请稍后重试",
+    "note": "安全错误文案",
+    "phase": "error",
+    "text": {
+      "copy": "text_129"
+    }
+  },
+  {
+    "id": "two-lines",
+    "group": "正文边界",
+    "name": "恰好两行",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "一二三四五六七八九十甲乙",
+    "offset": 0,
+    "hasContext": true
+  },
+  {
+    "id": "third-line",
+    "group": "正文边界",
+    "name": "第三行展开",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "一二三四五六七八九十甲乙丙",
+    "offset": 0,
+    "hasContext": true
+  },
+  {
+    "id": "four-lines",
+    "group": "正文边界",
+    "name": "恰好四行",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "一二三四五六七八九十甲乙丙丁戊己庚辛壬癸子丑寅卯",
+    "offset": 0,
+    "hasContext": true
+  },
+  {
+    "id": "scroll-middle",
+    "group": "正文边界",
+    "name": "翻看中段",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "安康鱼生活在海底，头上有像钓竿的发光器，利用光线吸引猎物，然后突然张开大嘴捕食。它的外形很特别，也叫灯笼鱼。",
+    "offset": 3,
+    "hasContext": true
+  },
+  {
+    "id": "scroll-end",
+    "group": "正文边界",
+    "name": "翻看末尾",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "安康鱼生活在海底，头上有像钓竿的发光器，利用光线吸引猎物，然后突然张开大嘴捕食。它的外形很特别，也叫灯笼鱼。",
+    "offset": 2000,
+    "hasContext": true
+  },
+  {
+    "id": "mixed-text",
+    "group": "正文边界",
+    "name": "中英文混排",
+    "note": "20 px 固定大字 · 保留侧键图标",
+    "phase": "speaking",
+    "text": "Wi-Fi 支持中文名称。Hello 2026！下一行继续。",
+    "offset": 0,
+    "hasContext": true
+  },
+  {
+    "id": "fade-out-half",
+    "group": "正文边界",
+    "name": "底部文案淡出 50ms",
+    "note": "过渡中间帧 · 图标保留",
+    "phase": "speaking",
+    "text": "这是第三行刚刚展开的文字。",
+    "hasContext": true,
+    "footerOpacity": 0.5
+  },
+  {
+    "id": "fade-in-half",
+    "group": "正文边界",
+    "name": "底部文案恢复 50ms",
+    "note": "恢复中间帧 · 图标保留",
+    "hasContext": true,
+    "footerOpacity": 0.5
+  },
+  {
+    "id": "finished-short",
+    "group": "正文边界",
+    "name": "短回答结束",
+    "note": "保留三秒",
+    "phase": "finished",
+    "text": "好的。"
+  },
+  {
+    "id": "listening-followup",
+    "group": "正文边界",
+    "name": "追问输入",
+    "note": "有上下文 · ASR 始终隐藏",
+    "phase": "listening",
+    "hasContext": true,
+    "level": 50
+  },
+  {
+    "id": "meter-0",
+    "group": "电平与等待",
+    "name": "麦克风电平 0%",
+    "note": "PTT 中央电平高度",
+    "phase": "listening",
+    "level": 0
+  },
+  {
+    "id": "meter-5",
+    "group": "电平与等待",
+    "name": "麦克风电平 5%",
+    "note": "PTT 中央电平高度",
+    "phase": "listening",
+    "level": 5
+  },
+  {
+    "id": "meter-50",
+    "group": "电平与等待",
+    "name": "麦克风电平 50%",
+    "note": "PTT 中央电平高度",
+    "phase": "listening",
+    "level": 50
+  },
+  {
+    "id": "meter-100",
+    "group": "电平与等待",
+    "name": "麦克风电平 100%",
+    "note": "PTT 中央电平高度",
+    "phase": "listening",
+    "level": 100
+  },
+  {
+    "id": "progress-0",
+    "group": "电平与等待",
+    "name": "思考等待 0 秒",
+    "note": "前快后慢，不伪装完成",
+    "phase": "thinking",
+    "processingElapsed": 0
+  },
+  {
+    "id": "progress-500",
+    "group": "电平与等待",
+    "name": "思考等待 0.5 秒",
+    "note": "前快后慢，不伪装完成",
+    "phase": "thinking",
+    "processingElapsed": 500
+  },
+  {
+    "id": "progress-1500",
+    "group": "电平与等待",
+    "name": "思考等待 1.5 秒",
+    "note": "前快后慢，不伪装完成",
+    "phase": "thinking",
+    "processingElapsed": 1500
+  },
+  {
+    "id": "progress-2500",
+    "group": "电平与等待",
+    "name": "思考等待 2.5 秒",
+    "note": "前快后慢，不伪装完成",
+    "phase": "thinking",
+    "processingElapsed": 2500
+  },
+  {
+    "id": "progress-15000",
+    "group": "电平与等待",
+    "name": "思考等待 15 秒",
+    "note": "前快后慢，不伪装完成",
+    "phase": "thinking",
+    "processingElapsed": 15000
+  },
+  {
+    "id": "volume-0",
+    "group": "音量与状态栏",
+    "name": "音量 0/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 0,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-1",
+    "group": "音量与状态栏",
+    "name": "音量 1/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 1,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-2",
+    "group": "音量与状态栏",
+    "name": "音量 2/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 2,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-3",
+    "group": "音量与状态栏",
+    "name": "音量 3/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 3,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-4",
+    "group": "音量与状态栏",
+    "name": "音量 4/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 4,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-5",
+    "group": "音量与状态栏",
+    "name": "音量 5/5",
+    "note": "原厂六个位置（含静音）",
+    "volume": 5,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "volume-overlay",
+    "group": "音量与状态栏",
+    "name": "回答时调整音量",
+    "note": "音量覆盖底部正文",
+    "phase": "speaking",
+    "text": "这是一段长回答，音量面板覆盖底部两行内容。",
+    "hasContext": true,
+    "volume": 2,
+    "volumeUntil": 1600
+  },
+  {
+    "id": "wifi-0",
+    "group": "音量与状态栏",
+    "name": "Wi-Fi 0/4 格",
+    "note": "未亮弧线为灰色",
+    "wifi": 0
+  },
+  {
+    "id": "wifi-1",
+    "group": "音量与状态栏",
+    "name": "Wi-Fi 1/4 格",
+    "note": "未亮弧线为灰色",
+    "wifi": 1
+  },
+  {
+    "id": "wifi-2",
+    "group": "音量与状态栏",
+    "name": "Wi-Fi 2/4 格",
+    "note": "未亮弧线为灰色",
+    "wifi": 2
+  },
+  {
+    "id": "wifi-3",
+    "group": "音量与状态栏",
+    "name": "Wi-Fi 3/4 格",
+    "note": "未亮弧线为灰色",
+    "wifi": 3
+  },
+  {
+    "id": "wifi-4",
+    "group": "音量与状态栏",
+    "name": "Wi-Fi 4/4 格",
+    "note": "未亮弧线为灰色",
+    "wifi": 4
+  },
+  {
+    "id": "battery-empty",
+    "group": "音量与状态栏",
+    "name": "电池 0%",
+    "note": "白色状态栏",
+    "battery": 0,
+    "charging": false
+  },
+  {
+    "id": "battery-unknown",
+    "group": "音量与状态栏",
+    "name": "电池 未知",
+    "note": "白色状态栏",
+    "battery": -1,
+    "charging": false
+  },
+  {
+    "id": "battery-full",
+    "group": "音量与状态栏",
+    "name": "电池 100%",
+    "note": "白色状态栏",
+    "battery": 100,
+    "charging": false
+  },
+  {
+    "id": "battery-full-charging",
+    "group": "音量与状态栏",
+    "name": "电池 100% / 充电",
+    "note": "白色状态栏",
+    "battery": 100,
+    "charging": true
+  },
+  {
+    "id": "header-mobile",
+    "group": "音量与状态栏",
+    "name": "移动网络",
+    "note": "显示文字，不绘制蜂窝图标",
+    "network": {
+      "type": "mobile",
+      "mobile": true
+    }
+  },
+  {
+    "id": "header-other",
+    "group": "音量与状态栏",
+    "name": "其他联网",
+    "note": "显示文字，不绘制蜂窝图标",
+    "network": {
+      "type": "other",
+      "mobile": false
+    }
+  },
+  {
+    "id": "device-1",
+    "group": "菜单与设备",
+    "name": "电池状态",
+    "note": "设备状态分页",
+    "view": "device",
+    "page": 1
+  },
+  {
+    "id": "device-2",
+    "group": "菜单与设备",
+    "name": "存储与内存",
+    "note": "设备状态分页",
+    "view": "device",
+    "page": 2
+  },
+  {
+    "id": "device-3",
+    "group": "菜单与设备",
+    "name": "运行状态",
+    "note": "设备状态分页",
+    "view": "device",
+    "page": 3
+  },
+  {
+    "id": "device-charging",
+    "group": "菜单与设备",
+    "name": "电池：已接电源",
+    "note": "电源状态可编辑",
+    "view": "device",
+    "page": 1,
+    "charging": true
+  },
+  {
+    "id": "device-full",
+    "group": "菜单与设备",
+    "name": "电池：已充满",
+    "note": "电池状态可编辑",
+    "view": "device",
+    "page": 1,
+    "battery": 100,
+    "device": {
+      "full": true
+    }
+  },
+  {
+    "id": "device-unknown",
+    "group": "菜单与设备",
+    "name": "电池：未知",
+    "note": "无有效电量读数",
+    "view": "device",
+    "page": 1,
+    "battery": -1
+  },
+  {
+    "id": "device-no-battery",
+    "group": "菜单与设备",
+    "name": "无电池信息",
+    "note": "跳过电池页，仅三页",
+    "view": "device",
+    "page": 1,
+    "device": {
+      "batteryPresent": false
+    }
+  },
+  {
+    "id": "device-no-config",
+    "group": "菜单与设备",
+    "name": "语音配置未加载",
+    "note": "配置缺失",
+    "view": "device",
+    "page": 3,
+    "device": {
+      "configured": false
+    }
+  },
+  {
+    "id": "network-address",
+    "group": "网络页面",
+    "name": "Wi-Fi 地址",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 1,
+    "network": {}
+  },
+  {
+    "id": "network-quality",
+    "group": "网络页面",
+    "name": "Wi-Fi 质量",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 2,
+    "network": {}
+  },
+  {
+    "id": "network-offline",
+    "group": "网络页面",
+    "name": "网络未连接",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 0,
+    "network": {
+      "type": "offline"
+    }
+  },
+  {
+    "id": "network-mobile",
+    "group": "网络页面",
+    "name": "当前移动网络",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 0,
+    "network": {
+      "type": "mobile",
+      "mobile": true
+    }
+  },
+  {
+    "id": "network-other",
+    "group": "网络页面",
+    "name": "其他网络",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 0,
+    "network": {
+      "type": "other"
+    }
+  },
+  {
+    "id": "network-no-info",
+    "group": "网络页面",
+    "name": "Wi-Fi 无详细信息",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 0,
+    "network": {
+      "wifiInfo": false
+    }
+  },
+  {
+    "id": "network-unknown",
+    "group": "网络页面",
+    "name": "地址尚未分配",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 1,
+    "network": {
+      "ssid": "未知网络",
+      "ip": "未分配",
+      "gateway": "未分配"
+    }
+  },
+  {
+    "id": "network-unicode",
+    "group": "网络页面",
+    "name": "多语言网络名称",
+    "note": "仅展示模拟参数，无网络请求",
+    "view": "network",
+    "page": 1,
+    "network": {
+      "ssid": "测试网络_日本語_한국어"
+    }
+  },
+  {
+    "id": "checking-0",
+    "group": "服务检测",
+    "name": "正在检测：语音识别",
+    "note": "返回取消 · 不连接服务",
+    "view": "checks",
+    "checking": "语音识别"
+  },
+  {
+    "id": "checking-1",
+    "group": "服务检测",
+    "name": "正在检测：语言模型",
+    "note": "返回取消 · 不连接服务",
+    "view": "checks",
+    "checking": "语言模型"
+  },
+  {
+    "id": "checking-2",
+    "group": "服务检测",
+    "name": "正在检测：语音合成",
+    "note": "返回取消 · 不连接服务",
+    "view": "checks",
+    "checking": "语音合成"
+  },
+  {
+    "id": "results-empty",
+    "group": "服务检测",
+    "name": "尚无检测结果",
+    "note": "空结果页",
+    "view": "results",
+    "results": []
+  },
+  {
+    "id": "result-pass-0",
+    "group": "服务检测",
+    "name": "语音识别：通过",
+    "note": "单项详情",
+    "view": "results",
+    "page": 1
+  },
+  {
+    "id": "result-pass-1",
+    "group": "服务检测",
+    "name": "语言模型：通过",
+    "note": "单项详情",
+    "view": "results",
+    "page": 2
+  },
+  {
+    "id": "result-pass-2",
+    "group": "服务检测",
+    "name": "语音合成：通过",
+    "note": "单项详情",
+    "view": "results",
+    "page": 3
+  },
+  {
+    "id": "results-mixed",
+    "group": "服务检测",
+    "name": "部分服务未通过",
+    "note": "汇总页",
+    "view": "results",
+    "results": [
+      {
+        "name": "语音识别",
+        "success": true,
+        "message": "连接握手通过",
+        "detail": "未执行语音识别",
+        "elapsedMs": 214
+      },
+      {
+        "name": "语言模型",
+        "success": false,
+        "message": "鉴权未通过",
+        "detail": "HTTP 401",
+        "elapsedMs": 244
+      },
+      {
+        "name": "语音合成",
+        "success": true,
+        "message": "连接握手通过",
+        "detail": "未执行语音合成",
+        "elapsedMs": 146
+      }
+    ]
+  },
+  {
+    "id": "checks-incomplete",
+    "group": "服务检测",
+    "name": "检测未完成",
+    "note": "可返回重新检测",
+    "view": "checkError"
+  },
+  {
+    "id": "check-error-0",
+    "group": "检测错误",
+    "name": "尚未配置密钥",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "尚未配置密钥",
+        "detail": "请先配置语音服务",
+        "elapsedMs": 0
+      }
+    ]
+  },
+  {
+    "id": "check-error-1",
+    "group": "检测错误",
+    "name": "连接已关闭",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音合成",
+        "success": false,
+        "message": "连接已关闭",
+        "detail": "请重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-2",
+    "group": "检测错误",
+    "name": "连接请求失败",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音合成",
+        "success": false,
+        "message": "连接请求失败",
+        "detail": "请重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-3",
+    "group": "检测错误",
+    "name": "服务拒绝连接",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音合成",
+        "success": false,
+        "message": "服务拒绝连接",
+        "detail": "请检查服务配置",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-4",
+    "group": "检测错误",
+    "name": "响应格式异常",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音合成",
+        "success": false,
+        "message": "响应格式异常",
+        "detail": "请重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-5",
+    "group": "检测错误",
+    "name": "服务关闭连接",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "服务关闭连接",
+        "detail": "请重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-6",
+    "group": "检测错误",
+    "name": "连接超时",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "连接超时",
+        "detail": "请检查网络后重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-7",
+    "group": "检测错误",
+    "name": "检测已取消",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "检测已取消",
+        "detail": "",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-8",
+    "group": "检测错误",
+    "name": "鉴权未通过",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "鉴权未通过",
+        "detail": "HTTP 401",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-9",
+    "group": "检测错误",
+    "name": "请求受到限制",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语言模型",
+        "success": false,
+        "message": "请求受到限制",
+        "detail": "HTTP 429",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-10",
+    "group": "检测错误",
+    "name": "服务暂不可用",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语言模型",
+        "success": false,
+        "message": "服务暂不可用",
+        "detail": "HTTP 503",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-11",
+    "group": "检测错误",
+    "name": "接口未通过",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语言模型",
+        "success": false,
+        "message": "接口未通过",
+        "detail": "HTTP 404",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-12",
+    "group": "检测错误",
+    "name": "域名解析失败",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "域名解析失败",
+        "detail": "请检查网络后重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-13",
+    "group": "检测错误",
+    "name": "安全连接失败",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "安全连接失败",
+        "detail": "请检查网络后重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "check-error-14",
+    "group": "检测错误",
+    "name": "网络连接失败",
+    "note": "失败详情 · 消息、耗时、说明均可编辑",
+    "view": "results",
+    "page": 1,
+    "results": [
+      {
+        "name": "语音识别",
+        "success": false,
+        "message": "网络连接失败",
+        "detail": "请检查网络后重试",
+        "elapsedMs": 12000
+      }
+    ]
+  },
+  {
+    "id": "home-1",
+    "group": "桌面与息屏",
+    "name": "桌面：系统设置",
+    "note": "系统应用图标使用占位，ROM 界面不属于回归范围",
+    "view": "home",
+    "selected": 1
+  },
+  {
+    "id": "home-2",
+    "group": "桌面与息屏",
+    "name": "桌面：对讲设置",
+    "note": "系统应用图标使用占位，ROM 界面不属于回归范围",
+    "view": "home",
+    "selected": 2
+  },
+  {
+    "id": "home-extra",
+    "group": "桌面与息屏",
+    "name": "桌面：其他应用",
+    "note": "动态应用列表与长标题截断",
+    "view": "home",
+    "selected": 3,
+    "homeLabels": [
+      "NeoTalkie对讲",
+      "系统设置",
+      "对讲设置",
+      "厂家附加应用长名称"
+    ]
+  },
+  {
+    "id": "diagnostics-running",
+    "view": "diagnostics",
+    "checkQueue": [
+      "语音识别",
+      "语言模型",
+      "语音合成"
+    ],
+    "checkIndex": 0,
+    "stageAt": 1800,
+    "results": [],
+    "name": "网络测试 · 进行中",
+    "group": "菜单与详情",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话"
+  },
+  {
+    "id": "diagnostics-network",
+    "view": "diagnostics",
+    "checkQueue": [
+      "语音识别",
+      "语言模型",
+      "语音合成"
+    ],
+    "stageAt": 1800,
+    "page": 1,
+    "results": [],
+    "name": "网络测试 · 翻看网络信息",
+    "group": "菜单与详情",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话"
+  },
+  {
+    "id": "diagnostics-done",
+    "view": "diagnostics",
+    "name": "网络测试 · 完成",
+    "group": "菜单与详情",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话"
+  },
+  {
+    "id": "diagnostics-done-1",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第2页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 1
+  },
+  {
+    "id": "diagnostics-done-2",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第3页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 2
+  },
+  {
+    "id": "diagnostics-done-3",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第4页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 3
+  },
+  {
+    "id": "diagnostics-done-4",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第5页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 4
+  },
+  {
+    "id": "diagnostics-done-5",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第6页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 5
+  },
+  {
+    "id": "diagnostics-done-6",
+    "group": "菜单与详情",
+    "name": "网络测试完成 · 第7页",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "page": 6
+  },
+  {
+    "id": "diagnostics-checking-1",
+    "group": "菜单与详情",
+    "name": "网络测试中 · 语言模型",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "checking": "语言模型",
+    "checkIndex": 1,
+    "checkQueue": [
+      "语音识别",
+      "语言模型",
+      "语音合成"
+    ],
+    "stageAt": 1800,
+    "results": []
+  },
+  {
+    "id": "diagnostics-checking-2",
+    "group": "菜单与详情",
+    "name": "网络测试中 · 语音合成",
+    "note": "一级菜单、MENU 进入、EXIT 返回、PTT 回到对话",
+    "view": "diagnostics",
+    "checking": "语音合成",
+    "checkIndex": 2,
+    "checkQueue": [
+      "语音识别",
+      "语言模型",
+      "语音合成"
+    ],
+    "stageAt": 1800,
+    "results": []
+  },
+  {
+    "id": "menu-0",
+    "name": "功能菜单 · 网络测试",
+    "group": "菜单与详情",
+    "note": "上下选择，MENU 进入，EXIT 返回，PTT 回到对话",
+    "view": "menu",
+    "selected": 0
+  },
+  {
+    "id": "menu-1",
+    "name": "功能菜单 · 系统状态",
+    "group": "菜单与详情",
+    "note": "上下选择，MENU 进入，EXIT 返回，PTT 回到对话",
+    "view": "menu",
+    "selected": 1
+  },
+  {
+    "id": "launcher-settings",
+    "name": "桌面：设备设置",
+    "group": "桌面",
+    "note": "独立桌面的网络状态与系统信息",
+    "view": "menu",
+    "owner": "launcher"
+  },
+  {
+    "id": "launcher-network",
+    "name": "桌面：网络状态",
+    "group": "桌面",
+    "note": "仅本机网络信息，不触发语音检查",
+    "view": "network",
+    "owner": "launcher"
+  },
+  {
+    "id": "launcher-system",
+    "name": "桌面：系统状态",
+    "group": "桌面",
+    "note": "设备状态不依赖语音配置",
+    "view": "device",
+    "owner": "launcher"
+  },
+  {
+    "id": "home-ble",
+    "group": "手机配网",
+    "name": "桌面手机配网入口",
+    "note": "第四个入口",
+    "view": "home",
+    "selected": 3
+  },
+  {
+    "id": "ble-starting",
+    "group": "手机配网",
+    "name": "开启蓝牙",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "starting"
+  },
+  {
+    "id": "ble-ready",
+    "group": "手机配网",
+    "name": "等待手机",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "ready"
+  },
+  {
+    "id": "ble-connected",
+    "group": "手机配网",
+    "name": "手机连接",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "connected"
+  },
+  {
+    "id": "ble-passed",
+    "group": "手机配网",
+    "name": "收发通过",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "passed"
+  },
+  {
+    "id": "ble-failed",
+    "group": "手机配网",
+    "name": "测试失败",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "failed"
+  },
+  {
+    "id": "ble-unavailable",
+    "group": "手机配网",
+    "name": "蓝牙不可用",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "unavailable"
+  },
+  {
+    "id": "ble-expired",
+    "group": "手机配网",
+    "name": "验证过期",
+    "note": "固定中文数据验证，不修改 Wi-Fi",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "expired"
+  },
+  {
+    "id": "wifi-pair",
+    "group": "手机配网",
+    "name": "核对确认码",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "pair"
+  },
+  {
+    "id": "wifi-approved",
+    "group": "手机配网",
+    "name": "手台已授权",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "approved"
+  },
+  {
+    "id": "wifi-connecting",
+    "group": "手机配网",
+    "name": "正在连接Wi-Fi",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "connecting"
+  },
+  {
+    "id": "wifi-success",
+    "group": "手机配网",
+    "name": "配网成功",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "success"
+  },
+  {
+    "id": "wifi-auth",
+    "group": "手机配网",
+    "name": "认证失败",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "auth"
+  },
+  {
+    "id": "wifi-timeout",
+    "group": "手机配网",
+    "name": "配网超时",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "timeout"
+  },
+  {
+    "id": "wifi-cancelled",
+    "group": "手机配网",
+    "name": "取消配网",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "cancelled"
+  },
+  {
+    "id": "wifi-wifiFailed",
+    "group": "手机配网",
+    "name": "保存或系统失败",
+    "note": "物理授权、加密凭据和实际连接结果",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "wifiFailed"
+  }
+]

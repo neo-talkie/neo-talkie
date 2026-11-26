@@ -14,6 +14,8 @@ for name in names:
 sources += list((APP / 'tests').rglob('*.java'))
 sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession','LanHandshake']]
 sources += list((ROOT / 'android/launcher/tests').rglob('*.java'))
+sources += [ROOT / 'android/hfp-mic/src/com/neotalkie/hfpmic/PttSequence.java']
+sources += list((ROOT / 'android/hfp-mic/tests').rglob('*.java'))
 run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-d', dest, *sources)
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ProtocolTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ConversationMemoryTest')
@@ -30,3 +32,5 @@ run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.PttLeaseTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.BleProbeProtocolTest')
 
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.LanHandshakeTest')
+
+run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.hfpmic.PttSequenceTest')

@@ -1,12 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.neotalkie.hfpmic" android:versionCode="1" android:versionName="0.1">
+    package="com.neotalkie.hfpmic" android:versionCode="2" android:versionName="0.2">
     <uses-sdk android:minSdkVersion="22" android:targetSdkVersion="22" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <application android:label="蓝牙麦克风" android:icon="@drawable/ic_mic"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" android:allowBackup="false">
+        <service android:name=".PttService" android:exported="false" />
         <activity android:name=".MicActivity" android:exported="true" android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

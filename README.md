@@ -8,7 +8,7 @@ NeoTalkie 是独立的设备端项目，提供桌面、对讲和可选的蓝牙�
 | --- | --- | --- |
 | NeoTalkie 桌面 | `android/launcher/` | HOME、应用入口、网络/系统信息、打开 Android 系统设置首页 |
 | NeoTalkie 对讲 | `android/talk/` | 实体 PTT、ASR → AI → TTS、短期上下文、语音服务诊断 |
-| 蓝牙麦克风 | `android/hfp-mic/` | mx_b5 专用，打开后启用电脑蓝牙麦克风模式 |
+| 蓝牙麦克风 | `android/hfp-mic/` | mx_b5 专用，按住 PTT 传音，可选首尾点按或持续按住 Mac Fn |
 
 **在手台打开「手机配置」即可用微信助手管理本机。** 首次连接核对两端确认码并按 MENU。启用后台管理后，在对讲期间打开助手即可经同一 Wi-Fi 重连。助手可以配置 Wi-Fi、模型、密钥及频道，按需拉取最近 100 条问答和用量。[操作说明](docs/ble-provisioning.md)
 

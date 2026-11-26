@@ -51,11 +51,24 @@ def build(app):
     sources = sorted((APP / 'src').rglob('*.java')) + sorted((OUT / 'generated').rglob('*.java'))
     if app != 'hfp-mic':
         sources += sorted((ROOT / 'android/common/src').rglob('*.java'))
+    classpath = [ANDROID, *libs]
+    d8_classpath = []
+    if app == 'hfp-mic':
+        # Signatures only. Android supplies the actual classes on the radio.
+        api = OUT / 'mx-b5-api'
+        api.mkdir()
+        run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-source', '8', '-target', '8',
+            '-Xlint:-options', '-classpath', ANDROID, '-d', api,
+            *sorted((APP / 'mx-b5-api').rglob('*.java')))
+        api_jar = OUT / 'mx-b5-api.jar'
+        run(JAVA / 'bin/jar', 'cf', api_jar, '-C', api, '.')
+        classpath.insert(0, api_jar)
+        d8_classpath = ['--classpath', api_jar]
     run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-source', '8', '-target', '8',
-        '-Xlint:-options', '-classpath', os.pathsep.join(map(str, [ANDROID, *libs])),
+        '-Xlint:-options', '-classpath', os.pathsep.join(map(str, classpath)),
         '-d', OUT / 'classes', *sources)
     run(JAVA / 'bin/jar', 'cf', OUT / 'classes.jar', '-C', OUT / 'classes', '.')
-    run(BT / 'd8', '--min-api', '21', '--lib', ANDROID, '--output', OUT / 'dex', OUT / 'classes.jar', *libs)
+    run(BT / 'd8', '--min-api', '21', '--lib', ANDROID, *d8_classpath, '--output', OUT / 'dex', OUT / 'classes.jar', *libs)
     unsigned = OUT / 'unsigned.apk'
     shutil.copyfile(OUT / 'resources.apk', unsigned)
     with zipfile.ZipFile(unsigned, 'a', zipfile.ZIP_DEFLATED) as z:

@@ -10,7 +10,7 @@ NeoTalkie 是独立的设备端项目，提供桌面、对讲和可选的音频�
 | NeoTalkie 对讲 | `android/talk/` | 实体 PTT、ASR → AI → TTS、短期上下文、语音服务诊断 |
 | NeoTalkie Audio Link（音频互联） | `android/audio-link/` | mx_b5 专用，按住 PTT 传音，可选在语音首尾各点按一次 Mac Fn |
 
-要把手台接入电脑，打开「音频互联」，点「蓝牙配对」，在电脑上连接手台并选为声音输入设备。[音频互联使用指南](android/README.md#neotalkie-audio-link音频互联)
+要把手台接入电脑，打开「音频互联」，用上下键选「蓝牙配对」并按确定，在电脑上连接手台并选为声音输入设备。[音频互联说明](android/README.md#neotalkie-audio-link音频互联)
 
 **在手台打开「手机配置」即可用微信助手管理本机。** 首次连接核对两端确认码并按 MENU。启用后台管理后，在对讲期间打开助手即可经同一 Wi-Fi 重连。助手可以配置 Wi-Fi、模型、密钥及频道，按需拉取最近 100 条问答和用量。[操作说明](docs/ble-provisioning.md)
 

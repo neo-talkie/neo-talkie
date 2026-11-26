@@ -25,6 +25,8 @@ Update this index and the relevant architecture documentation in the same change
 
 ## Delivery
 
+所有手台应用均按无触屏设备设计。首页、菜单、模式选择和应用内对话框的可操作项都须单列纵向排列。上、下键逐项移动可见焦点，确定键执行当前项，返回键返回上级或退出。完整操作路径须仅靠实体按键走通，不得依赖触摸、左右键或横排按钮。
+
 Do not edit generated UI files directly. Regenerate with `make ui-generate`. For UI changes, run `make ui-visual`, inspect screenshots, record review with `make ui-accept REASON="..."`, then pass `make ui-check`. Build both affected APKs.
 
 

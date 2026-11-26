@@ -30,12 +30,20 @@ final class MxB5AudioRole {
   }
 
   static void apply(Context context, boolean mic) throws IOException, InterruptedException {
+    SharedPreferences prefs = context.getSharedPreferences("role", Context.MODE_PRIVATE);
+    // Older APKs only persisted "applied". Treat an active legacy role as a pending restore.
+    if (!mic && !prefs.contains("wasEnabled") && !"true".equals(prefs.getString("applied", ""))) return;
     if (!"mx_b5".equalsIgnoreCase(Build.MODEL) || Build.VERSION.SDK_INT != 22)
       throw new IOException("此版本适用于 mx_b5 安卓 5.1 手台");
     BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
     if (adapter == null) throw new IOException("设备没有蓝牙适配器");
-
-    SharedPreferences prefs = context.getSharedPreferences("role", Context.MODE_PRIVATE);
+    if (mic && !prefs.contains("wasEnabled")) {
+      int initial = adapter.getState();
+      boolean wasEnabled = initial == BluetoothAdapter.STATE_ON || initial == BluetoothAdapter.STATE_TURNING_ON;
+      if (!prefs.edit().putBoolean("wasEnabled", wasEnabled).commit())
+        throw new IOException("无法保存原蓝牙状态");
+    }
+    boolean powerOn = mic || prefs.getBoolean("wasEnabled", true);
     String target = Boolean.toString(mic);
     boolean change = !target.equals(readRole());
     // Remember incomplete restarts across process death. First launch also checks by restarting.
@@ -50,15 +58,17 @@ final class MxB5AudioRole {
     int state = adapter.getState();
     if (state == BluetoothAdapter.STATE_TURNING_OFF) waitFor(adapter, BluetoothAdapter.STATE_OFF);
     if (state == BluetoothAdapter.STATE_TURNING_ON) waitFor(adapter, BluetoothAdapter.STATE_ON);
-    if (restart && adapter.isEnabled()) {
+    if ((restart || !powerOn) && adapter.isEnabled()) {
       if (!adapter.disable()) throw new IOException("系统未允许关闭蓝牙");
       waitFor(adapter, BluetoothAdapter.STATE_OFF);
     }
-    if (!adapter.isEnabled()) {
+    if (powerOn && !adapter.isEnabled()) {
       if (!adapter.enable()) throw new IOException("系统未允许开启蓝牙");
       waitFor(adapter, BluetoothAdapter.STATE_ON);
     }
-    if (restart && !prefs.edit().putString("applied", target).commit())
+    SharedPreferences.Editor saved = prefs.edit().putString("applied", target);
+    if (!mic) saved.remove("wasEnabled");
+    if (!saved.commit())
       throw new IOException("无法记录已应用的模式");
   }
 }

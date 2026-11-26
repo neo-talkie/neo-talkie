@@ -14,7 +14,8 @@ for name in names:
 sources += list((APP / 'tests').rglob('*.java'))
 sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession','LanHandshake']]
 sources += list((ROOT / 'android/launcher/tests').rglob('*.java'))
-sources += [ROOT / 'android/audio-link/src/com/neotalkie/audiolink/PttSequence.java']
+for name in ['PttSequence', 'AudioRoleSwitch']:
+    sources.append(ROOT / 'android/audio-link/src/com/neotalkie/audiolink' / (name + '.java'))
 sources += list((ROOT / 'android/audio-link/tests').rglob('*.java'))
 run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-d', dest, *sources)
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ProtocolTest')
@@ -34,3 +35,4 @@ run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.BleProbeProtocolTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.LanHandshakeTest')
 
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.audiolink.PttSequenceTest')
+run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.audiolink.AudioRoleSwitchTest')

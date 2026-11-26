@@ -23,6 +23,8 @@ final class SpeechEngine {
 
   static final class Turn {
     final long started;
+    final long wallTime=System.currentTimeMillis();
+    JSONObject usage=new JSONObject();
     final long cpuStarted = android.os.Process.getElapsedCpuTime();
     final Map<String, Long> timeline = new LinkedHashMap<>();
     final ArrayBlockingQueue<byte[]> input = new ArrayBlockingQueue<>(25);
@@ -178,8 +180,8 @@ final class SpeechEngine {
     this.config = config;
     this.audio = audio;
     this.listener = listener;
-    memory = new ConversationMemory(historyFile);
-    memory.snapshot(System.currentTimeMillis());
+    memory = historyFile==null?null:new ConversationMemory(historyFile,config==null?ConversationMemory.IDLE_MS:config.contextMs);
+    if(memory!=null)memory.snapshot(System.currentTimeMillis());
   }
 
   long contextRemaining(long now) {
@@ -296,6 +298,9 @@ final class SpeechEngine {
                 }
               } catch (IOException e) {
                 Log.w("NeoTalkie", "history_save_failed");
+              }
+              if(config!=null && t.liveSpeech){
+                try{RecentTurns.get(config.context).add(config,t);}catch(Exception e){Log.w("NeoTalkie","recent_turn_save_failed");}
               }
               listener.contextChanged();
               try {
@@ -541,13 +546,25 @@ final class SpeechEngine {
   }
 
   private byte[] generate(final Turn t, final String text) throws Exception {
+    return synthesize(t,text,false);
+  }
+
+  static void audition(android.content.Context c,String speaker)throws Exception{
+    Config cfg=new Config(c,speaker);
+    SpeechEngine engine=new SpeechEngine(cfg,null,null,(AudioManager)c.getSystemService(android.content.Context.AUDIO_SERVICE));
+    Turn t=new Turn();
+    try{engine.synthesize(t,"你好，这是手台的音色试听。",true);}
+    finally{t.cancel();releaseTrack(t);engine.close();}
+  }
+
+  private byte[] synthesize(final Turn t, final String text,final boolean preview) throws Exception {
     final ArrayBlockingQueue<String> deltas = new ArrayBlockingQueue<>(256);
     final String end = new String("END");
     Future<?> llm =
         streams.submit(
             new Callable<Void>() {
               public Void call() throws Exception {
-                ark(t, text, deltas);
+                if(preview)put(t,deltas,text);else ark(t, text, deltas);
                 put(t, deltas, end);
                 return null;
               }
@@ -631,7 +648,7 @@ final class SpeechEngine {
           if (t.firstAudio == 0) {
             t.firstAudio = SystemClock.elapsedRealtime();
             t.mark("ttsFirstAudio");
-            listener.status(t, UiContract.eventLabel("reply"), t.replyText);
+            if(!preview)listener.status(t, UiContract.eventLabel("reply"), t.replyText);
           }
           pcm.write(f.body, 0, n);
           writeAudio(t, f.body, n);
@@ -749,6 +766,12 @@ final class SpeechEngine {
           t.mark("llmDone");
           JSONObject value = e.getJSONObject("response");
           JSONObject usage = value.optJSONObject("usage");
+          if(usage!=null){
+            for(String key:Arrays.asList("input_tokens","output_tokens","total_tokens"))
+              if(usage.optLong(key,-1)>=0)t.usage.put(key,usage.getLong(key));
+            JSONObject cached=usage.optJSONObject("input_tokens_details");
+            if(cached!=null && cached.optLong("cached_tokens",-1)>=0)t.usage.put("cached_tokens",cached.getLong("cached_tokens"));
+          }
           JSONObject detail = usage == null ? null : usage.optJSONObject("output_tokens_details");
           if (detail != null) t.reasoningTokens = detail.optInt("reasoning_tokens", -1);
           if (t.replyText.isEmpty()) throw new IOException("模型没有返回文字");

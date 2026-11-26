@@ -9,7 +9,7 @@ NeoTalkie 是独立的设备端项目，提供两个 Android APK。目标设备�
 | NeoTalkie 桌面 | `android/launcher/` | HOME、应用入口、网络/系统信息、打开 Android 系统设置首页 |
 | NeoTalkie 对讲 | `android/talk/` | 实体 PTT、ASR → AI → TTS、短期上下文、语音服务诊断 |
 
-**0.2.2 支持 BLE Wi-Fi 配网，手机修改对讲设置尚未实现。** ADB 安装后可用小程序核对确认码并配置网络；语音服务密钥仍通过 ADB 写入。详见 [现场步骤及限制](docs/ble-provisioning.md)。
+**在手台打开「手机配置」即可用微信助手管理本机。** 首次连接核对两端确认码并按 MENU。启用后台管理后，在对讲期间打开助手即可经同一 Wi-Fi 重连。助手可以配置 Wi-Fi、模型、密钥及频道，按需拉取最近 100 条问答和用量。[操作说明](docs/ble-provisioning.md)
 
 开始使用：[新设备启用](docs/getting-started.md)。结构与接口：[架构](docs/architecture.md)。验证边界：[验收记录](docs/verification.md)。
 

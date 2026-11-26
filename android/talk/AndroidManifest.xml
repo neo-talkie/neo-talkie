@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.talk" android:versionCode="6" android:versionName="0.2.2">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.talk" android:versionCode="7" android:versionName="0.2.3">
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="22" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -11,6 +11,9 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <application android:label="NeoTalkie对讲" android:icon="@drawable/ic_neotalkie" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:debuggable="true">
 
+      <provider android:name="com.neotalkie.device.CompanionProvider" android:authorities="com.neotalkie.talk.management" android:exported="true" android:permission="com.neotalkie.launcher.permission.CONTROL">
+        <meta-data android:name="com.neotalkie.management.API" android:value="1"/>
+      </provider>
       <activity android:name="com.neotalkie.device.TalkMenuActivity" android:exported="false" android:screenOrientation="landscape" />
       <activity android:name="com.neotalkie.device.ServiceStatusActivity" android:exported="false" android:screenOrientation="landscape" />
       <activity android:name="com.neotalkie.device.MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTop">

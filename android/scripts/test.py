@@ -12,7 +12,7 @@ for name in names:
     assert len(candidates) == 1, name
     sources += candidates
 sources += list((APP / 'tests').rglob('*.java'))
-sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession']]
+sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession','LanHandshake']]
 sources += list((ROOT / 'android/launcher/tests').rglob('*.java'))
 run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-d', dest, *sources)
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ProtocolTest')
@@ -28,3 +28,5 @@ run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.PttHandoffTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.PttLeaseTest')
 
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.BleProbeProtocolTest')
+
+run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.LanHandshakeTest')

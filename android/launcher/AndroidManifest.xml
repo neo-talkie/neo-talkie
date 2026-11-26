@@ -1,7 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.launcher" android:versionCode="6" android:versionName="0.2.2">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.neotalkie.launcher" android:versionCode="7" android:versionName="0.2.3">
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="22" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -13,6 +15,10 @@
     <permission android:name="com.neotalkie.launcher.permission.CONTROL" android:protectionLevel="signature" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <application android:label="NeoTalkie桌面" android:icon="@drawable/ic_neotalkie" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:debuggable="true">
+    <service android:name="com.neotalkie.device.ManagementService" android:exported="false" />
+    <receiver android:name="com.neotalkie.device.ManagementService$Restore" android:exported="false">
+      <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED"/><action android:name="android.intent.action.MY_PACKAGE_REPLACED"/></intent-filter>
+    </receiver>
     <activity android:name="com.neotalkie.device.BleSetupActivity" android:exported="false" android:screenOrientation="landscape" />
     <activity android:name="com.neotalkie.device.StatusActivity" android:exported="true" android:permission="com.neotalkie.launcher.permission.CONTROL" android:screenOrientation="landscape" />
       <provider android:name="com.neotalkie.device.PttStateProvider" android:authorities="com.neotalkie.launcher.ptt" android:exported="true" android:permission="com.neotalkie.launcher.permission.CONTROL" />

@@ -59,6 +59,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       };
   private final RecordingFeedback feedback = new RecordingFeedback();
   private boolean foreground, held;
+  private long configVersion=Long.MIN_VALUE;
   private long lastMenu;
   private AudioManager audio;
   private PowerManager.WakeLock wake;
@@ -90,14 +91,6 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
         ((WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE))
             .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "NeoTalkie:stream");
     wifi.setReferenceCounted(false);
-    Config config = null;
-    try {
-      config = new Config(this);
-    } catch (Exception e) {
-      state = UiContract.T_PHASE_UNCONFIGURED;
-      detail = UiContract.T_TEXT_122;
-    }
-    engine = new SpeechEngine(config, this, new File(getFilesDir(), "conversation.bin"), audio);
     panel = new Panel();
     statusStrip = new StatusStrip(this, panel);
     volumeStrip = new VolumeStrip(this, panel);
@@ -112,6 +105,23 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
   protected void onResume() {
     super.onResume();
     foreground = true;
+    Config config=null;
+    try{config=new Config(this);}catch(Exception ignored){}
+    long version=config==null?-1:config.version;
+    if(engine==null || configVersion!=version){
+      if(engine!=null)engine.close();
+      configVersion=version;
+      String filename=config==null || config.epoch.isEmpty()?"conversation.bin":"conversation-"+config.epoch+".bin";
+      if(config!=null){
+        File[] obsolete=getFilesDir().listFiles();
+        if(obsolete!=null)for(File f:obsolete){
+          if((f.getName().equals("conversation.bin") || f.getName().matches("conversation-[a-f0-9-]{36}\\.bin")) && !filename.equals(f.getName()))f.delete();
+        }
+      }
+      engine=new SpeechEngine(config,this,new File(getFilesDir(),filename),audio);
+      if(config==null){state=UiContract.T_PHASE_UNCONFIGURED;detail=UiContract.T_TEXT_122;}
+      else if(state.equals(UiContract.T_PHASE_UNCONFIGURED)){state=UiContract.T_PHASE_IDLE;detail=UiContract.T_HOLD_PTT;}
+    }
     refreshContext();
     statusStrip.start();
     readPrivateCommand();
@@ -131,7 +141,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
 
   protected void onDestroy() {
     if (active != null) active.cancel();
-    engine.close();
+    if(engine!=null)engine.close();
     super.onDestroy();
   }
 

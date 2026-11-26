@@ -17,7 +17,45 @@ public final class BleSetupActivity extends Activity {
   private final Object lock = new Object();
   private WifiProvisionSession wifiSession;
   private WifiConnector connector;
+  private ManagementEndpoint management;
+  private int wifiAddress(){
+    android.net.wifi.WifiManager wifi=(android.net.wifi.WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
+    android.net.wifi.WifiInfo info=wifi==null?null:wifi.getConnectionInfo();
+    return info==null?0:info.getIpAddress();
+  }
+  private byte[] binding(){
+    return ManagementService.binding(this);
+  }
+  private void finishNetwork(int run,WifiProvisionSession session,int code,int ip){
+    new Thread(() -> publishNetwork(run,session,code,ip),"wifi-management-start").start();
+  }
+  private void publishNetwork(int run,WifiProvisionSession session,int code,int ip){
+    synchronized(lock){
+      if(closed || session!=wifiSession || run!=generation)return;
+      if(code==WifiProvisionSession.SUCCESS && session.management()){
+        byte[] secret=session.managementSecret();
+        try{
+          if(management!=null)management.close();
+          management=new ManagementEndpoint(this,ip,secret,false);
+          if(!session.trusted()){
+            byte[] key=WifiProvisionSession.mac(secret,"binding-v1".getBytes("US-ASCII"));
+            if(!ManagementService.update(this,key,true))throw new java.io.IOException();
+          } else ManagementService.restore(this);
+        }catch(Exception e){code=WifiProvisionSession.ERROR;if(management!=null)management.close();management=null;}
+        finally{Arrays.fill(secret,(byte)0);}
+      }
+      session.result(code,ip);
+      show(run,wifiState(code),code==WifiProvisionSession.SUCCESS ? UiContract.T_WIFI_LOCAL : UiContract.T_WIFI_FAILURE_HINT);
+    }
+  }
   private String pairingCode="";
+  // 0 = setup, 1 = change background access, 2 = revoke binding.
+  private int policyAction;
+  private boolean hasBinding, background;
+  private void refreshPolicy() {
+    hasBinding=binding()!=null;
+    background=ManagementService.enabled(this);
+  }
   private BluetoothAdapter adapter;
   private BluetoothLeAdvertiser advertiser;
   private BluetoothGattServer server;
@@ -38,12 +76,7 @@ public final class BleSetupActivity extends Activity {
     setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
     panel = new Panel(); strip = new StatusStrip(this,panel); volume = new VolumeStrip(this,panel);
     setContentView(panel);
-    String suffix = getPreferences(0).getString("bleSuffix", "");
-    if (suffix.isEmpty()) {
-      suffix = String.format(Locale.US,"%04X",new java.security.SecureRandom().nextInt(65536));
-      getPreferences(0).edit().putString("bleSuffix",suffix).apply();
-    }
-    broadcastName = "NeoTalkie-" + suffix;
+    broadcastName = ManagementService.deviceName(this);
   }
   protected void onResume() { super.onResume(); strip.start(); PttNavigation.resume(this); begin(); }
   protected void onPause() { end(); PttNavigation.pause(this); strip.stop(); volume.hide(); super.onPause(); }
@@ -51,12 +84,13 @@ public final class BleSetupActivity extends Activity {
   private void show(final int run, final String state, final String text) {
     main.post(new Runnable(){public void run(){
       if (closed || run != generation) return;
-      status = state; detail = text; panel.invalidate();
+      status = state; detail = text; refreshPolicy(); panel.invalidate();
     }});
   }
   private void begin() {
     boolean inherited=adapter!=null, priorEnabled=wasEnabled;String priorName=originalName;
     end();
+    policyAction=0; refreshPolicy();
     closed = false; final int run = ++generation;
     status = UiContract.T_BLE_STARTING; detail = UiContract.T_BLE_SCAN; pairingCode="";
     ScreenPower.busy(this,true);
@@ -137,17 +171,21 @@ public final class BleSetupActivity extends Activity {
                 if(wifiSession==null)result=BluetoothGatt.GATT_SUCCESS;
                 else {
                   final WifiProvisionSession session=wifiSession;
-                  result=session.accept(value,SystemClock.elapsedRealtime()) ? BluetoothGatt.GATT_SUCCESS : BluetoothGatt.GATT_FAILURE;
+                  boolean accepted=value!=null && value.length>0 && value[0]==0x15 ? session.recognize(value,binding()) : session.accept(value,SystemClock.elapsedRealtime());
+                  result=accepted ? BluetoothGatt.GATT_SUCCESS : BluetoothGatt.GATT_FAILURE;
                   if(session.awaitingApproval()){pairingCode=session.fingerprint;show(run,UiContract.T_WIFI_PAIR,UiContract.T_WIFI_CONFIRM);}
                   final WifiProvisionSession.Credentials credentials=session.takeCredentials();
                   if(credentials!=null)main.post(new Runnable(){public void run(){
                     synchronized(lock){
                       if(closed || run!=generation || session!=wifiSession || peer==null){credentials.clear();return;}
+                      if(session.currentNetwork()){
+                        credentials.clear();int ip=wifiAddress();
+                        finishNetwork(run,session,ip==0?WifiProvisionSession.ERROR:WifiProvisionSession.SUCCESS,ip);
+                        return;
+                      }
                       show(run,UiContract.T_WIFI_CONNECTING,UiContract.T_WIFI_WAIT);
                       connector=new WifiConnector(BleSetupActivity.this,new WifiConnector.Listener(){public void finished(int code,int ip){
-                        synchronized(lock){if(session!=wifiSession)return;session.result(code,ip);}
-                        Log.i("NeoTalkieBLE","wifi_result code="+code);
-                        show(run,wifiState(code),code==WifiProvisionSession.SUCCESS ? UiContract.T_WIFI_LOCAL : UiContract.T_WIFI_FAILURE_HINT);
+                        finishNetwork(run,session,code,ip);
                       }});connector.start(credentials);
                     }
                   }});
@@ -199,7 +237,7 @@ public final class BleSetupActivity extends Activity {
   }
   private void end() {
     synchronized(lock) {
-      closed=true; generation++; sessionTicket++; main.removeCallbacksAndMessages(null);
+      closed=true; if(management!=null)management.close();management=null; generation++; sessionTicket++; main.removeCallbacksAndMessages(null);
       try { if (advertiser!=null && advertising!=null) advertiser.stopAdvertising(advertising); } catch (RuntimeException ignored) {}
       if (server!=null) { try { if(peer!=null)server.cancelConnection(peer); server.close(); } catch(RuntimeException ignored){} }
       if(connector!=null){connector.cancel();connector=null;}
@@ -215,8 +253,32 @@ public final class BleSetupActivity extends Activity {
   public boolean dispatchKeyEvent(KeyEvent e) {
     if (PttNavigation.key(this,e)) return true;
     if (volume.handleKey(e,false)) return true;
+    int key=e.getKeyCode();
+    if (hasBinding && (key==KeyEvent.KEYCODE_DPAD_UP || key==KeyEvent.KEYCODE_DPAD_DOWN ||
+        key==KeyEvent.KEYCODE_DPAD_LEFT || key==KeyEvent.KEYCODE_DPAD_RIGHT ||
+        key==KeyEvent.KEYCODE_F7 || key==KeyEvent.KEYCODE_F8)) {
+      if (e.getAction()==KeyEvent.ACTION_UP) {
+        boolean next=key==KeyEvent.KEYCODE_DPAD_DOWN || key==KeyEvent.KEYCODE_DPAD_RIGHT || key==KeyEvent.KEYCODE_F8;
+        policyAction=(policyAction+(next?1:2))%3;
+        panel.invalidate();
+      }
+      return true;
+    }
+    if (policyAction!=0 && key==KeyEvent.KEYCODE_BACK) {
+      if (e.getAction()==KeyEvent.ACTION_UP) { policyAction=0; panel.invalidate(); }
+      return true;
+    }
     if (e.getKeyCode()==KeyEvent.KEYCODE_BACK) { if(e.getAction()==KeyEvent.ACTION_UP)finish(); return true; }
-    if (e.getKeyCode()==KeyEvent.KEYCODE_DPAD_CENTER || e.getKeyCode()==KeyEvent.KEYCODE_ENTER) {
+    if (e.getKeyCode()==KeyEvent.KEYCODE_DPAD_CENTER || e.getKeyCode()==KeyEvent.KEYCODE_ENTER || e.getKeyCode()==KeyEvent.KEYCODE_MENU) {
+      if(policyAction!=0 && e.getAction()==KeyEvent.ACTION_UP) {
+        synchronized(lock) {
+          end();
+          boolean saved=ManagementService.update(this,policyAction==2?null:binding(),policyAction==1 && !background);
+          begin();
+          if(!saved) show(generation,UiContract.T_WIFI_FAILED,UiContract.T_BLE_RETRY);
+        }
+        return true;
+      }
       if(e.getAction()==KeyEvent.ACTION_UP){synchronized(lock){if(wifiSession!=null && wifiSession.approve()){show(generation,UiContract.T_WIFI_APPROVED,UiContract.T_WIFI_PHONE);return true;}}}
       if(e.getAction()==KeyEvent.ACTION_UP && (closed || status.equals(UiContract.T_BLE_UNAVAILABLE) || status.equals(UiContract.T_BLE_FAILED))) begin();
       return true;
@@ -229,12 +291,16 @@ public final class BleSetupActivity extends Activity {
     void text(Canvas c,String value,int y,int size,int color){paint.setColor(color);paint.setTextSize(size);c.drawText(value,6,y,paint);}
     protected void onDraw(Canvas c){
       c.save();c.scale(getWidth()/160f,getHeight()/128f);c.drawColor(UiContract.C_BG);strip.draw(c);
-      text(c,UiContract.T_BLE_TITLE,47,18,UiContract.C_PAGE_TITLE);
+      text(c,UiContract.T_BLE_TITLE,38,15,UiContract.C_PAGE_TITLE);
+      int ip=wifiAddress();
+      text(c,ip==0?"Wi-Fi —":"IP "+android.text.format.Formatter.formatIpAddress(ip),51,11,UiContract.C_INK);
       text(c,pairingCode.isEmpty() ? broadcastName : pairingCode,65,14,UiContract.C_ACCENT);
-      text(c,status,84,16,UiContract.C_INK);
-      text(c,detail,102,12,UiContract.C_INK);
+      String action=policyAction==2?UiContract.T_MANAGER_REVOKE:
+          (background?UiContract.T_MANAGER_DISABLE:UiContract.T_MANAGER_ENABLE);
+      text(c,policyAction==0?status:action,84,16,UiContract.C_INK);
+      text(c,policyAction==0?detail:UiContract.T_MANAGER_CONFIRM,102,12,UiContract.C_INK);
       paint.setColor(UiContract.C_VOLUME_BG);c.drawRect(0,108,160,128,paint);
-      text(c,closed ? UiContract.T_BLE_RETRY : UiContract.T_BLE_EXIT,123,12,UiContract.C_ACCENT);
+      text(c,policyAction!=0?UiContract.T_MANAGER_CANCEL:hasBinding?UiContract.T_MANAGER_OPTIONS:closed?UiContract.T_BLE_RETRY:UiContract.T_BLE_EXIT,123,12,UiContract.C_ACCENT);
       volume.draw(c);c.restore();
       setContentDescription(broadcastName+" "+status+" "+detail);
     }

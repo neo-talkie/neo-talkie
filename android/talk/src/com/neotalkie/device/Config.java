@@ -7,20 +7,27 @@ import org.json.JSONObject;
 final class Config {
   final String voiceKey, arkKey, model, speaker, prompt;
   final boolean webSearch;
+  final String channelId,channelName,epoch;
+  final long contextMs,version;
+  final Context context;
 
   Config(Context c) throws Exception {
-    File file = new File(c.getFilesDir(), "config.json");
-    if (!file.isFile()) throw new IOException("尚未配置，请运行 provision.py");
-    JSONObject o = new JSONObject(read(new FileInputStream(file)));
+    this(c,null);
+  }
+  Config(Context c,String previewSpeaker) throws Exception {
+    context=c.getApplicationContext();
+    JSONObject o=CompanionConfig.read(c),channel=CompanionConfig.active(o);
+    version=o.getLong("version");channelId=channel.getString("id");channelName=channel.getString("name");
+    epoch=o.optString("contextEpoch","");contextMs=channel.getInt("contextMin")*60000L;
     voiceKey = o.getString("voiceApiKey");
-    arkKey = o.getString("arkApiKey");
-    if (voiceKey.isEmpty() || arkKey.isEmpty()) throw new IOException("语音密钥未配置");
+    arkKey = o.optString("arkApiKey");
+    if (voiceKey.isEmpty() || (previewSpeaker==null && arkKey.isEmpty())) throw new IOException("语音密钥未配置");
     model = o.optString("model", "");
-    if (model.trim().isEmpty()) throw new IOException("Missing model or endpoint ID");
-    speaker = o.optString("speaker", "zh_female_xiaohe_uranus_bigtts");
+    if (previewSpeaker==null && model.trim().isEmpty()) throw new IOException("Missing model or endpoint ID");
+    speaker = previewSpeaker==null?channel.getString("speaker"):previewSpeaker;
     webSearch = o.optBoolean("webSearch", true);
     prompt =
-        read(c.getAssets().open("prompt.txt")) + "\n本轮语音回复必须在30秒内结束，最多90个汉字或等长短句，优先直接回答重点，不复述问题。";
+        channel.getString("systemPrompt") + "\n本轮语音回复必须在30秒内结束，最多90个汉字或等长短句，优先直接回答重点，不复述问题。";
   }
 
   static String read(InputStream in) throws IOException {

@@ -8,10 +8,15 @@ final class ConversationMemory {
   static final long IDLE_MS = UiContract.CONTEXT_MS;
   static final int MAX_TURNS = 32, MAX_CHARS = 32000, MAX_TEXT = 4000;
   private final File file;
+  private final long idleMs;
   private final ArrayList<String[]> turns = new ArrayList<>();
   private long touched, generation;
 
   ConversationMemory(File file) {
+    this(file,IDLE_MS);
+  }
+  ConversationMemory(File file,long idleMs) {
+    this.idleMs=idleMs;
     this.file = file;
     if (!file.isFile()) return;
     try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
@@ -37,7 +42,7 @@ final class ConversationMemory {
   }
 
   private void expire(long now) {
-    if (now < touched || now - touched >= IDLE_MS) {
+    if (now < touched || now - touched >= idleMs) {
       turns.clear();
       file.delete();
     }
@@ -49,7 +54,7 @@ final class ConversationMemory {
 
   synchronized long remainingMillis(long now) {
     expire(now);
-    return turns.isEmpty() ? 0 : IDLE_MS - (now - touched);
+    return turns.isEmpty() ? 0 : idleMs - (now - touched);
   }
 
   synchronized void clear() throws IOException {
@@ -86,7 +91,7 @@ final class ConversationMemory {
 
   // Called once per turn, after completion or explicit PTT continuation.
   synchronized void remember(String user, String reply, long now) throws IOException {
-    if (user.isEmpty() || reply.isEmpty()) return;
+    if (idleMs==0 || user.isEmpty() || reply.isEmpty()) return;
     turns.add(new String[] {clip(user), clip(reply)});
     int chars = 0;
     for (String[] turn : turns) chars += turn[0].length() + turn[1].length();

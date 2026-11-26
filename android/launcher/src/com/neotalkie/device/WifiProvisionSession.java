@@ -18,6 +18,8 @@ final class WifiProvisionSession {
   private final byte[] challenge=new byte[16], publicBytes=new byte[272], encrypted=new byte[256];
   private final byte[] commitment=new byte[32];
   private int committed;
+  private int mode;
+  private boolean trusted;
   private byte[] secret, reply=new byte[]{0x7f};
   private int state=WAIT, received, sequence;
   private long began;
@@ -32,6 +34,25 @@ final class WifiProvisionSession {
     System.arraycopy(modulus,modulus.length-256,publicBytes,0,256);System.arraycopy(challenge,0,publicBytes,256,16);
 
   }
+  static byte[] mac(byte[] key,byte[] data)throws Exception{
+    Mac h=Mac.getInstance("HmacSHA256");h.init(new SecretKeySpec(key,"HmacSHA256"));return h.doFinal(data);
+  }
+  private byte[] proof(byte[] key,String role)throws Exception{
+    Mac h=Mac.getInstance("HmacSHA256");h.init(new SecretKeySpec(key,"HmacSHA256"));
+    h.update(role.getBytes("US-ASCII"));h.update(publicBytes);return Arrays.copyOf(h.doFinal(commitment),16);
+  }
+  synchronized boolean recognize(byte[] packet,byte[] key){
+    if(destroyed || !publicRequested || state!=WAIT || packet.length!=17 || key==null)return false;
+    try{
+      if(!MessageDigest.isEqual(proof(key,"phone"),Arrays.copyOfRange(packet,1,17)))return false;
+      byte[] tag=proof(key,"radio");reply=new byte[17];reply[0]=0x15;
+      System.arraycopy(tag,0,reply,1,16);trusted=true;state=READY;return true;
+    }catch(Exception e){return false;}
+  }
+  synchronized boolean management(){return mode==2 || mode==3;}
+  synchronized boolean currentNetwork(){return mode==3;}
+  synchronized byte[] managementSecret(){return secret.clone();}
+  synchronized boolean trusted(){return trusted;}
   synchronized boolean approve(){if(destroyed || !publicRequested || state!=WAIT)return false;state=READY;return true;}
   synchronized boolean awaitingApproval(){return publicRequested && state==WAIT;}
   synchronized int state(){return state;}
@@ -76,11 +97,16 @@ final class WifiProvisionSession {
         Cipher rsa=Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
         rsa.init(Cipher.DECRYPT_MODE,pair.getPrivate(),new OAEPParameterSpec("SHA-256","MGF1",MGF1ParameterSpec.SHA256,PSource.PSpecified.DEFAULT));
         plain=rsa.doFinal(encrypted);
-        if(plain.length<53 || plain[0]!=1 || !MessageDigest.isEqual(challenge,Arrays.copyOfRange(plain,1,17)))throw new Exception();
+        if(plain.length<53 || (plain[0]<1 || plain[0]>3) || !MessageDigest.isEqual(challenge,Arrays.copyOfRange(plain,1,17)))throw new Exception();
         byte[] candidate=Arrays.copyOfRange(plain,17,49);
         if(!MessageDigest.isEqual(commitment,MessageDigest.getInstance("SHA-256").digest(candidate))){Arrays.fill(candidate,(byte)0);throw new Exception();}
         secret=candidate;
-        credentials=Credentials.parse(plain);state=CONNECTING;
+        mode=plain[0];
+        if(mode==3){
+          if(plain.length!=53 || plain[49]!=0 || plain[50]!=0)throw new Exception();
+          credentials=new Credentials("","",true,false);
+        }else credentials=Credentials.parse(plain);
+        state=CONNECTING;
       }catch(Exception e){state=INVALID;}
       finally{Arrays.fill(encrypted,(byte)0);if(plain!=null)Arrays.fill(plain,(byte)0);pair=null;}
     }

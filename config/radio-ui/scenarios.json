@@ -1435,6 +1435,54 @@
     "bleStatus": "expired"
   },
   {
+    "id": "manager-enabled",
+    "group": "手机配网",
+    "name": "后台管理已开启",
+    "note": "已绑定手台的后台管理授权",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "ready",
+    "hasBinding": true,
+    "background": true,
+    "policyAction": 0
+  },
+  {
+    "id": "manager-enable",
+    "group": "手机配网",
+    "name": "启用后台管理",
+    "note": "已绑定手台的后台管理授权",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "ready",
+    "hasBinding": true,
+    "background": false,
+    "policyAction": 1
+  },
+  {
+    "id": "manager-disable",
+    "group": "手机配网",
+    "name": "关闭后台管理",
+    "note": "已绑定手台的后台管理授权",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "ready",
+    "hasBinding": true,
+    "background": true,
+    "policyAction": 1
+  },
+  {
+    "id": "manager-revoke",
+    "group": "手机配网",
+    "name": "解除绑定",
+    "note": "已绑定手台的后台管理授权",
+    "view": "ble",
+    "owner": "launcher",
+    "bleStatus": "ready",
+    "hasBinding": true,
+    "background": true,
+    "policyAction": 2
+  },
+  {
     "id": "wifi-pair",
     "group": "手机配网",
     "name": "核对确认码",

@@ -101,6 +101,9 @@ export function createState(input = {}) {
     checkIndex: Math.floor(number(input.checkIndex, 0, 2, 0)),
     owner: input.owner === "launcher" || input.view === "home" ? "launcher" : "talk",
     bleName: /^NeoTalkie-[A-F0-9]{4}$/.test(input.bleName) ? input.bleName : "NeoTalkie-A1B2",
+    hasBinding: !!input.hasBinding,
+    background: !!input.background,
+    policyAction: [1,2].includes(input.policyAction) ? input.policyAction : 0,
     bleStatus: ["starting","ready","connected","passed","failed","unavailable","expired","pair","approved","connecting","success","auth","timeout","cancelled","wifiFailed"].includes(input.bleStatus) ? input.bleStatus : "ready",
     pairingCode: /^[A-F0-9]{6} [A-F0-9]{6}$/.test(input.pairingCode) ? input.pairingCode : "A1B2C3 D4E5F6",
     bleUntil: number(input.bleUntil,0,Number.MAX_SAFE_INTEGER,MS.BLE_SESSION_MS),
@@ -276,6 +279,7 @@ export function act(state, action, now = 0, maxOffset = 0) {
   if (s.view === "sleep") return s;
   if (action === "home") return { ...ready(s), view: "home", owner: "launcher", selected: 0 };
   if (action === "back" && s.view === "home") return s;
+  if (action === "back" && s.view === "ble" && s.policyAction) return {...s,policyAction:0};
   if (action === "back") {
     if (s.view === "main")
       return {
@@ -358,6 +362,8 @@ export function act(state, action, now = 0, maxOffset = 0) {
       : { ...s, held: false };
   if (action === "up" || action === "down") {
     const d = action === "up" ? -1 : 1;
+    if (s.view === "ble" && s.hasBinding)
+      return {...s,policyAction:(s.policyAction+d+3)%3};
     if (s.view === "menu")
       return { ...s, selected: menuSelection(s.selected, d) };
     if (s.view === "home")
@@ -386,6 +392,9 @@ export function act(state, action, now = 0, maxOffset = 0) {
     return s;
   }
   if (action === "confirm") {
+    if(s.view === "ble" && s.policyAction)
+      return {...s,hasBinding:s.policyAction!==2,background:s.policyAction===1 && !s.background,
+        policyAction:0,bleStatus:"ready",bleUntil:now+MS.BLE_SESSION_MS};
     if(s.view === "ble" && s.bleStatus === "pair")return {...s,bleStatus:"approved"};
     if (s.view === "ble" && ["expired","failed","unavailable"].includes(s.bleStatus))
       return {...s,bleStatus:"ready",bleUntil:now+MS.BLE_SESSION_MS};

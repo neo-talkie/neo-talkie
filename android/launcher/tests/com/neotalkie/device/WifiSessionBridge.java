@@ -11,6 +11,11 @@ public final class WifiSessionBridge {
     while((line=in.readLine())!=null){
       if(line.equals("A"))System.out.println("A "+s.approve());
       else if(line.startsWith("W "))System.out.println("W "+s.accept(bytes(line.substring(2)),1));
+      else if(line.startsWith("R ")){
+        String[] parts=line.split(" ");
+        System.out.println("R "+s.recognize(bytes(parts[2]),bytes(parts[1])));
+      }
+      else if(line.equals("M"))System.out.println("M "+s.management()+" "+s.currentNetwork()+" "+s.trusted());
       else if(line.equals("READ"))System.out.println("READ "+hex(s.reply()));
       else if(line.equals("C")){WifiProvisionSession.Credentials c=s.takeCredentials();
         if(c==null)System.out.println("C NONE");

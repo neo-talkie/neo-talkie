@@ -9,8 +9,8 @@ This repository contains device software only. Do not add legacy platform server
 
 | Directory | Responsibility |
 | --- | --- |
-| `android/launcher/` | Independent `com.neotalkie.launcher` APK: HOME, device/network status, Android Settings root entry, foreground BLE validation and physically approved encrypted Wi-Fi setup, signature-protected PTT handoff provider. |
-| `android/talk/` | Independent `com.neotalkie.talk` APK: capture, ASR/AI/TTS, short-term conversation, service diagnostics; owns voice configuration. |
+| `android/launcher/` | Independent `com.neotalkie.launcher` APK: HOME, device/network status, Android Settings root entry, foreground BLE validation and physically approved encrypted Wi-Fi setup, foreground BLE handoff and opt-in, bound-phone background Wi-Fi management, signature-protected PTT handoff provider. |
+| `android/talk/` | Independent `com.neotalkie.talk` APK: capture, ASR/AI/TTS, short-term conversation, service diagnostics; owns voice and channel configuration, bounded text history, and the signature-protected companion provider. |
 | `android/common/` | Compile-time Java UI, power, volume, navigation and PTT contract; no model calls or shared credentials. |
 | `tools/simulator/` | Offline UI model, local rendering, scenario catalog and screenshot export for both APKs. |
 | `config/radio-ui/` | Single source for UI strings, layout, timing and regression scenarios. |
@@ -31,6 +31,7 @@ Do not edit generated UI files directly. Regenerate with `make ui-generate`. For
 
 - [Android build layout](android/README.md) / [Development tools](tools/README.md)
 - [Architecture and app boundaries](docs/architecture.md)
+- [Device configuration service, per-app forms and background Wi-Fi management design](docs/device-configuration.md)
 - [Fresh-device setup, SDK and ADB](docs/getting-started.md)
 - [Offline and physical acceptance](docs/verification.md)
 - [UI contract and review workflow](docs/radio-ui-contract.md)

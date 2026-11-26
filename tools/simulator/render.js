@@ -334,12 +334,14 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
   } else if (s.view === "ble") {
     const details={starting:T.ble_test_only,ready:T.ble_scan,connected:T.ble_send_test,passed:T.ble_utf8_ok,failed:T.ble_retry,unavailable:T.ble_retry,expired:T.ble_retry,pair:T.wifi_confirm,approved:T.wifi_phone,connecting:T.wifi_wait,success:T.wifi_local,auth:T.wifi_failure_hint,timeout:T.wifi_failure_hint,cancelled:T.wifi_failure_hint,wifiFailed:T.wifi_failure_hint};
     const states={pair:T.wifi_pair,approved:T.wifi_approved,connecting:T.wifi_connecting,success:T.wifi_success,auth:T.wifi_auth,timeout:T.wifi_timeout,cancelled:T.wifi_cancelled,wifiFailed:T.wifi_failed};
-    text(c,T.ble_title,6,47,18,C.PAGE_TITLE);
+    text(c,T.ble_title,6,38,15,C.PAGE_TITLE);
+    text(c,s.ip ? "IP "+s.ip : "Wi-Fi —",6,51,11,C.INK);
     text(c,states[s.bleStatus] ? s.pairingCode : s.bleName,6,65,14,C.ACCENT);
-    text(c,states[s.bleStatus] || T["ble_"+s.bleStatus],6,84,16,C.INK);
-    text(c,details[s.bleStatus],6,102,12,C.INK);
+    const action=s.policyAction===2?T.manager_revoke:s.background?T.manager_disable:T.manager_enable;
+    text(c,s.policyAction?action:states[s.bleStatus] || T["ble_"+s.bleStatus],6,84,16,C.INK);
+    text(c,s.policyAction?T.manager_confirm:details[s.bleStatus],6,102,12,C.INK);
     rect(c,0,108,160,20,C.VOLUME_BG);
-    text(c,s.bleStatus === "expired" ? T.ble_retry : T.ble_exit,6,123,12,C.ACCENT);
+    text(c,s.policyAction?T.manager_cancel:s.hasBinding?T.manager_options:s.bleStatus === "expired" ? T.ble_retry : T.ble_exit,6,123,12,C.ACCENT);
   } else if (s.view === "external") {
     text(c, "系统应用", 8, 49, 18, COLORS.white);
     text(c, "不模拟厂家系统界面", 8, 73, 14, COLORS.ink);

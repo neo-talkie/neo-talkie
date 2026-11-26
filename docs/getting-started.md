@@ -30,7 +30,7 @@ python3 android/scripts/device.py --serial YOUR_SERIAL home
 
 两个包名为 `com.neotalkie.launcher` 和 `com.neotalkie.talk`。安装不会卸载其他应用。按 HOME，在系统选择器将 NeoTalkie 桌面设为“始终”；若已设其他默认桌面，先在系统设置清除其默认值。先确认新桌面能稳定启动，再考虑人工处理厂商桌面；部分固件的厂商桌面硬编码依赖原配应用。
 
-桌面可打开对讲、设备设置、系统设置和手机配网；上下移动，MENU 确认。设备设置显示 NeoTalkie 的网络和系统状态；系统设置打开 Android 设置首页，可继续访问 Wi-Fi、蓝牙及其他 ROM 设置。推荐使用「手机配网」由微信小程序加密下发 Wi-Fi 配置，具体步骤见 [BLE 配网](ble-provisioning.md)。系统设置在 160×128 上的可操作性需针对新固件实测。
+桌面可打开对讲、设备设置、系统设置和手机配置；上下移动，MENU 确认。设备设置显示 NeoTalkie 的网络和系统状态；系统设置打开 Android 设置首页，可继续访问 Wi-Fi、蓝牙及其他 ROM 设置。推荐使用「手机配置」由微信小程序连接当前 Wi-Fi 或加密下发新的 Wi-Fi 配置，然后填写模型、密钥和频道，具体步骤见 [BLE 配网](ble-provisioning.md)。系统设置在 160×128 上的可操作性需针对新固件实测。
 
 ## 配置语音
 

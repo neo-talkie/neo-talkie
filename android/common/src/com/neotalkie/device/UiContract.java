@@ -2,7 +2,7 @@
 package com.neotalkie.device;
 
 final class UiContract {
-  static final String HASH="a982226fdb52144160495c877abe64940169483e39ea5b93918870e01704822d";
+  static final String HASH="92cf48f43630e658445354f3d8df33774c0e09cfa81b9561994a0fef25ddbc2e";
   static final String T_TEXT_000="";
   static final String T_TEXT_001=" 分钟";
   static final String T_TEXT_003=" 未通过";
@@ -156,8 +156,8 @@ final class UiContract {
   static final String T_MENU_TITLE="功能菜单";
   static final String T_MENU_ENTER="MENU 进入";
   static final String T_DEVICE_SETTINGS="设备设置";
-  static final String T_BLE_TITLE="手机配网";
-  static final String T_BLE_ENTRY="手机配网";
+  static final String T_BLE_TITLE="手机配置";
+  static final String T_BLE_ENTRY="手机配置";
   static final String T_BLE_STARTING="正在开启蓝牙";
   static final String T_BLE_READY="等待手机连接";
   static final String T_BLE_SCAN="小程序中点击扫描";
@@ -172,8 +172,14 @@ final class UiContract {
   static final String T_BLE_TEST_ONLY="本次不修改Wi-Fi";
   static final String T_BLE_EXIT="5分钟内有效 EXIT返回";
   static final String T_WIFI_PAIR="核对上方确认码";
-  static final String T_WIFI_CONFIRM="MENU 确认 EXIT取消";
-  static final String T_WIFI_APPROVED="已授权手机配网";
+  static final String T_WIFI_CONFIRM="MENU 授权后台管理";
+  static final String T_MANAGER_OPTIONS="上下 管理选项 · EXIT";
+  static final String T_MANAGER_ENABLE="开启后台管理？";
+  static final String T_MANAGER_DISABLE="关闭后台管理？";
+  static final String T_MANAGER_REVOKE="解除手机绑定？";
+  static final String T_MANAGER_CONFIRM="MENU 确认操作";
+  static final String T_MANAGER_CANCEL="上下切换 · EXIT取消";
+  static final String T_WIFI_APPROVED="已授权手机配置";
   static final String T_WIFI_PHONE="请在手机输入网络";
   static final String T_WIFI_CONNECTING="正在连接Wi-Fi";
   static final String T_WIFI_WAIT="请稍候，最长45秒";

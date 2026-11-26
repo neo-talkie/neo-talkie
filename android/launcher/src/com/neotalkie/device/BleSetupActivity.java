@@ -90,6 +90,7 @@ public final class BleSetupActivity extends Activity {
   private void begin() {
     boolean inherited=adapter!=null, priorEnabled=wasEnabled;String priorName=originalName;
     end();
+    ManagementService.setupWindow(true);
     policyAction=0; refreshPolicy();
     closed = false; final int run = ++generation;
     status = UiContract.T_BLE_STARTING; detail = UiContract.T_BLE_SCAN; pairingCode="";
@@ -244,10 +245,11 @@ public final class BleSetupActivity extends Activity {
       if(wifiSession!=null){wifiSession.destroy();wifiSession=null;}
       server=null; peer=null; advertiser=null; advertising=null; protocol.reset();
       if(adapter!=null) {
-        try { if(originalName!=null)adapter.setName(originalName); if(!wasEnabled)adapter.disable(); } catch(RuntimeException ignored){}
+        try { if(originalName!=null)adapter.setName(originalName); if(!wasEnabled && !ManagementService.enabled(this))adapter.disable(); } catch(RuntimeException ignored){}
       }
       adapter=null; originalName=null;
     }
+    ManagementService.setupWindow(false);
     ScreenPower.busy(this,false);
   }
   public boolean dispatchKeyEvent(KeyEvent e) {

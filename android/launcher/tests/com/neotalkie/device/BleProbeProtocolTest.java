@@ -10,6 +10,9 @@ public final class BleProbeProtocolTest {
     }
   }
   public static void main(String[] args){
+    String discovery = BleProbeProtocol.discoveryUuid("NeoTalkie-CAFE", 0x0901a8c0);
+    check(discovery.equalsIgnoreCase("7d92e3b1-6f41-4c10-8101-cafec0a80109"));
+    if (Arrays.equals(args, new String[]{"--discovery"})) { System.out.println(discovery); return; }
     BleProbeProtocol p=new BleProbeProtocol();
     if(args.length>0){for(String hex:args){byte[] b=new byte[hex.length()/2];for(int i=0;i<b.length;i++)b[i]=(byte)Integer.parseInt(hex.substring(i*2,i*2+2),16);p.accept(b,0);}System.out.println(p.reply());return;}
     check(p.reply().equals("NT1:READY"));check(p.accept(header(),0));send(p,BleProbeProtocol.SAMPLE);

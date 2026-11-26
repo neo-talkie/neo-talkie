@@ -4,11 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-/** Bounded, test-data-only protocol. No network settings, credentials, or persistence. */
+/** BLE wire formats for address discovery and the fixed-data setup probe. */
 final class BleProbeProtocol {
   static final String SERVICE = "641f2000-cf44-4c44-9121-b0219fd08011";
   static final String VALUE = "641f2001-cf44-4c44-9121-b0219fd08011";
   static final byte[] SAMPLE = "NeoTalkie|测试网络_日本語_é|BLE".getBytes(Charset.forName("UTF-8"));
+  static String discoveryUuid(String deviceName, int wifiAddress) {
+    String suffix = deviceName.substring("NeoTalkie-".length());
+    return String.format(java.util.Locale.US, "7d92e3b1-6f41-4c10-8101-%s%08x",
+        suffix, Integer.reverseBytes(wifiAddress));
+  }
   private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
   private int expected, sequence;
   private long started;

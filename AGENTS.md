@@ -9,7 +9,7 @@ This repository contains device software only. Do not add legacy platform server
 
 | Directory | Responsibility |
 | --- | --- |
-| `android/launcher/` | Independent `com.neotalkie.launcher` APK: HOME, device/network status, Android Settings root entry, foreground BLE validation and physically approved encrypted Wi-Fi setup, foreground BLE handoff and opt-in, bound-phone background Wi-Fi management, signature-protected PTT handoff provider. |
+| `android/launcher/` | Independent `com.neotalkie.launcher` APK: HOME, device/network status, Android Settings root entry, foreground BLE validation and physically approved encrypted Wi-Fi setup, foreground BLE handoff and opt-in, screen-on BLE address discovery and bound-phone Wi-Fi management, signature-protected PTT handoff provider. |
 | `android/talk/` | Independent `com.neotalkie.talk` APK: capture, ASR/AI/TTS, short-term conversation, service diagnostics; cycles configured channels with the lower side key, owns voice and channel configuration, bounded text history, and the signature-protected companion provider. |
 | `android/audio-link/` | NeoTalkie Audio Link (音频互联), the optional mx_b5 Bluetooth audio and shortcut APK. Enables the A2DP media sink and HFP hands-free role while visible. Reuses the shared volume strip for media and HFP speaker levels. Owns the HFP audio gate, HID keyboard, ordinary PTT and start/end Fn taps. The pairing button requests a 120-second discoverable window and the system handles bonding. |
 | `android/common/` | Compile-time Java UI, power, volume, navigation and PTT contract; no model calls or shared credentials. |

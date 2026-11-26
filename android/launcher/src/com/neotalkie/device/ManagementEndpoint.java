@@ -97,6 +97,7 @@ final class ManagementEndpoint implements Closeable {
     if(size<8 || size>64000)throw new IOException();
     byte[] data=new byte[size];in.readFully(data);
     String body = new String(data,StandardCharsets.US_ASCII);
+    if (!ScreenPower.interactive(context)) throw new IOException();
     if (handshake != null) {
       if (!ManagementService.enabled(context) || !Arrays.equals(boundIdentity, ManagementService.binding(context))) throw new IOException();
       if (path.equals("/hello")) {

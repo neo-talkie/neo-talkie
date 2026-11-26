@@ -1,6 +1,9 @@
 package com.neotalkie.device;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.*;
+import android.os.ParcelUuid;
 import android.content.*;
 import android.net.*;
 import java.net.Inet4Address;
@@ -48,6 +51,34 @@ public final class ManagementService extends Service {
     public void onReceive(Context c, Intent intent) { restore(c); }
   }
 
+  // The setup window and the service live in the launcher process, on the main thread.
+  private static ManagementService running;
+  private static boolean setupOpen;
+  static void setupWindow(boolean open) {
+    setupOpen = open;
+    if (running == null) return;
+    if (open) running.stopDiscovery();
+    else running.handler.post(running.retry);
+  }
+
+  private BluetoothLeAdvertiser advertiser;
+  private AdvertiseCallback advertising;
+  private boolean mayEnableBluetooth = true;
+  private final BroadcastReceiver stateChanges = new BroadcastReceiver() {
+    public void onReceive(Context c, Intent intent) {
+      String action = intent.getAction();
+      if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+        handler.removeCallbacks(retry);
+        closeEndpoint();
+      } else {
+        if (Intent.ACTION_SCREEN_ON.equals(action)) mayEnableBluetooth = true;
+        if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action) &&
+            intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) != BluetoothAdapter.STATE_ON) stopDiscovery();
+        refresh();
+      }
+    }
+  };
+
   private final Handler handler = new Handler();
   private ConnectivityManager connectivity;
   private final Runnable retry = this::refresh;
@@ -64,6 +95,11 @@ public final class ManagementService extends Service {
 
   public void onCreate() {
     super.onCreate();
+    running = this;
+    IntentFilter states = new IntentFilter(Intent.ACTION_SCREEN_ON);
+    states.addAction(Intent.ACTION_SCREEN_OFF);
+    states.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+    registerReceiver(stateChanges, states);
     connectivity=(ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
     NetworkRequest wifi=new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build();
     connectivity.registerNetworkCallback(wifi,changes);
@@ -76,6 +112,7 @@ public final class ManagementService extends Service {
     if (destroyed) return;
     handler.removeCallbacks(retry);
     if (!enabled(this)) { closeEndpoint(); stopSelf(); return; }
+    if (!ScreenPower.interactive(this)) { closeEndpoint(); return; }
     int ip=0;
     Network selected=null;
     for(Network net:connectivity.getAllNetworks()) {
@@ -93,7 +130,10 @@ public final class ManagementService extends Service {
       if(selected!=null) break;
     }
     byte[] key=binding(this);
-    if (endpoint!=null && ip==address && activeNetwork.equals(selected) && Arrays.equals(key,activeBinding)) return;
+    if (endpoint!=null && ip==address && activeNetwork.equals(selected) && Arrays.equals(key,activeBinding)) {
+      startDiscovery();
+      return;
+    }
     closeEndpoint();
     if (ip == 0 || key == null) return;
     try {
@@ -101,11 +141,51 @@ public final class ManagementService extends Service {
       address = ip;
       activeNetwork = selected;
       activeBinding = key;
+      startDiscovery();
     } catch (Exception e) {
       handler.postDelayed(retry, 10000);
     }
   }
+  private void startDiscovery() {
+    if (setupOpen || advertising != null) return;
+    BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+    if (adapter == null) return;
+    try {
+      if (!adapter.isEnabled()) {
+        if (mayEnableBluetooth && adapter.getState() == BluetoothAdapter.STATE_OFF) {
+          mayEnableBluetooth = false;
+          adapter.enable();
+        }
+        return;
+      }
+      mayEnableBluetooth = false;
+      advertiser = adapter.getBluetoothLeAdvertiser();
+      if (advertiser == null) return;
+      ParcelUuid uuid = ParcelUuid.fromString(BleProbeProtocol.discoveryUuid(deviceName(this), address));
+      advertising = new AdvertiseCallback() {
+        public void onStartFailure(int code) {
+          if (this != advertising) return;
+          stopDiscovery();
+          if (code != ADVERTISE_FAILED_FEATURE_UNSUPPORTED) handler.postDelayed(retry, 10000);
+        }
+      };
+      advertiser.startAdvertising(new AdvertiseSettings.Builder()
+              .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER).setConnectable(false).build(),
+          new AdvertiseData.Builder().addServiceUuid(uuid).build(), advertising);
+    } catch (RuntimeException e) {
+      stopDiscovery();
+      handler.postDelayed(retry, 10000);
+    }
+  }
+  private void stopDiscovery() {
+    if (advertiser != null && advertising != null) {
+      try { advertiser.stopAdvertising(advertising); } catch (RuntimeException ignored) {}
+    }
+    advertiser = null;
+    advertising = null;
+  }
   private void closeEndpoint() {
+    stopDiscovery();
     if (endpoint != null) endpoint.close();
     endpoint = null;
     if (activeBinding != null) Arrays.fill(activeBinding, (byte)0);
@@ -114,6 +194,8 @@ public final class ManagementService extends Service {
   public IBinder onBind(Intent intent) { return null; }
   public void onDestroy() {
     destroyed=true;
+    running = null;
+    unregisterReceiver(stateChanges);
     connectivity.unregisterNetworkCallback(changes);
     handler.removeCallbacks(retry);
     closeEndpoint();

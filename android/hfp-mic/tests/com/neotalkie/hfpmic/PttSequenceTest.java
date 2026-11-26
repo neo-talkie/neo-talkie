@@ -54,12 +54,12 @@ public final class PttSequenceTest implements PttSequence.Port {
     if (release < 220) io.expect("0 down", "220 up", "300 down", "520 up");
     else io.expect("0 down", "220 up", release + " close", (release + 80) + " down", (release + 300) + " up");
   }
-  private static void held() {
-    PttSequenceTest io = new PttSequenceTest();
-    PttSequence ptt = new PttSequence(io, PttSequence.Mode.HOLD_FN);
-    ptt.press(); io.until(1000); ptt.release(); io.until(1050); ptt.press(); io.until(1300);
-    ptt.reset(); io.until(2000);
-    io.expect("0 down", "180 open", "1000 close", "1180 up", "1180 down", "1300 close", "1300 up");
+  private static void restorePreferences() {
+    for (PttSequence.Mode mode : PttSequence.Mode.values()) {
+      if (PttSequence.Mode.fromPreference(mode.name()) != mode) throw new AssertionError(mode);
+    }
+    if (PttSequence.Mode.fromPreference("HOLD_FN") != PttSequence.Mode.VOICE)
+      throw new AssertionError("Retired mode should restore ordinary PTT");
   }
   private static void disconnect() {
     PttSequenceTest io = new PttSequenceTest();
@@ -71,7 +71,7 @@ public final class PttSequenceTest implements PttSequence.Port {
     io.expect("0 down", "220 up", "400 close", "400 up", "1500 down");
   }
   public static void main(String[] args) {
-    ordinary(); toggle(); shortTap(60); shortTap(400); held(); disconnect();
+    ordinary(); toggle(); shortTap(60); shortTap(400); restorePreferences(); disconnect();
     System.out.println("PTT mode sequences passed");
   }
 }

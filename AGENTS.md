@@ -11,7 +11,7 @@ This repository contains device software only. Do not add legacy platform server
 | --- | --- |
 | `android/launcher/` | Independent `com.neotalkie.launcher` APK: HOME, device/network status, Android Settings root entry, foreground BLE validation and physically approved encrypted Wi-Fi setup, foreground BLE handoff and opt-in, bound-phone background Wi-Fi management, signature-protected PTT handoff provider. |
 | `android/talk/` | Independent `com.neotalkie.talk` APK: capture, ASR/AI/TTS, short-term conversation, service diagnostics; owns voice and channel configuration, bounded text history, and the signature-protected companion provider. |
-| `android/hfp-mic/` | Optional standalone mx_b5 HFP microphone mode APK. Owns the HFP audio gate, HID keyboard and three PTT modes. Pair in system Bluetooth settings. |
+| `android/hfp-mic/` | Optional standalone mx_b5 HFP microphone mode APK. Owns the HFP audio gate, HID keyboard and ordinary PTT and start/end Fn taps. Pair in system Bluetooth settings. |
 | `android/common/` | Compile-time Java UI, power, volume, navigation and PTT contract; no model calls or shared credentials. |
 | `tools/simulator/` | Offline UI model, local rendering, scenario catalog and screenshot export for both APKs. |
 | `config/radio-ui/` | Single source for UI strings, layout, timing and regression scenarios. |

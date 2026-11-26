@@ -28,7 +28,10 @@ public final class PttService extends Service implements BluetoothProfile.Servic
     super.onCreate();
     adapter = BluetoothAdapter.getDefaultAdapter();
     audio = (AudioManager)getSystemService(AUDIO_SERVICE);
-    mode = PttSequence.Mode.valueOf(getSharedPreferences("ptt", MODE_PRIVATE).getString("mode", PttSequence.Mode.VOICE.name()));
+    SharedPreferences prefs = getSharedPreferences("ptt", MODE_PRIVATE);
+    String savedMode = prefs.getString("mode", PttSequence.Mode.VOICE.name());
+    mode = PttSequence.Mode.fromPreference(savedMode);
+    if (!mode.name().equals(savedMode)) prefs.edit().putString("mode", mode.name()).apply();
     sequence = new PttSequence(this, mode);
     IntentFilter filter = new IntentFilter(AUDIO_STATE);
     filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);

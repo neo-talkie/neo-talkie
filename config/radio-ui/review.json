@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Reviewed the optional microphone app on the mx_b5 display and the launcher and talk simulator screens.",
+  "reason": "Verified the two microphone mode choices on mx_b5 and reviewed the shared simulator screens.",
   "hashes": {
     "android/common/src/com/neotalkie/device/DeviceRoutes.java": "e7666525872d88f680ff53a514af6c9b0a6c4b7211656228d923183c8a8be39c",
     "android/common/src/com/neotalkie/device/PixelArt.java": "7bcfbf5728e5a58b38acea309ac1797a4b4b2b5bffe5d4879317ccd81a0c1fdc",

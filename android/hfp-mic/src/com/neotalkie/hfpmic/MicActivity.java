@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 public final class MicActivity extends Activity {
   private static final ExecutorService CHANGES = Executors.newSingleThreadExecutor();
-  private static final String[] MODES = {"普通 PTT", "Fn 首尾点按", "持续按住 Fn"};
+  private static final String[] MODES = {"普通 PTT", "Fn 首尾点按"};
   private PttService ptt;
   private boolean bound, active;
   private TextView status;

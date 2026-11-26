@@ -2,7 +2,13 @@ package com.neotalkie.hfpmic;
 
 /** One physical press can arrive as both a key and a vendor broadcast. */
 final class PttSequence {
-  enum Mode { VOICE, TOGGLE_FN, HOLD_FN }
+  enum Mode {
+    VOICE, TOGGLE_FN;
+
+    static Mode fromPreference(String name) {
+      return TOGGLE_FN.name().equals(name) ? TOGGLE_FN : VOICE;
+    }
+  }
   interface Port {
     boolean fn(boolean down);
     void audio(boolean open);
@@ -10,7 +16,7 @@ final class PttSequence {
     void cancel(Runnable task);
     void status(String text);
   }
-  private enum Phase { IDLE, FIRST_TAP, DELAY, HOLD_LEAD, TALKING, TAP_GAP, LAST_TAP, HOLD_TAIL }
+  private enum Phase { IDLE, FIRST_TAP, DELAY, TALKING, TAP_GAP, LAST_TAP }
   private static final long TAP_MS = 220, DELAY_MS = 500;
   private final Port port;
   private final Runnable next = this::advance;
@@ -38,8 +44,6 @@ final class PttSequence {
     if (turn == Mode.TOGGLE_FN) {
       port.status("等待 Fn 和语音延迟");
       waitIn(Phase.FIRST_TAP, TAP_MS);
-    } else if (turn == Mode.HOLD_FN) {
-      waitIn(Phase.HOLD_LEAD, 180);
     } else talk();
   }
   void release() {
@@ -50,12 +54,10 @@ final class PttSequence {
         earlyRelease = true;
         break;
       case DELAY:
-      case HOLD_LEAD:
       case TALKING:
         port.cancel(next);
         port.audio(false);
         if (turn == Mode.TOGGLE_FN) waitIn(Phase.TAP_GAP, 80);
-        else if (turn == Mode.HOLD_FN) waitIn(Phase.HOLD_TAIL, 180);
         else idle();
         break;
       default: break;
@@ -68,14 +70,12 @@ final class PttSequence {
         if (earlyRelease) waitIn(Phase.TAP_GAP, 80);
         else waitIn(Phase.DELAY, DELAY_MS);
         break;
-      case DELAY:
-      case HOLD_LEAD: talk(); break;
+      case DELAY: talk(); break;
       case TAP_GAP:
         if (port.fn(true)) waitIn(Phase.LAST_TAP, TAP_MS);
         else reset();
         break;
       case LAST_TAP:
-      case HOLD_TAIL:
         port.fn(false);
         idle();
         break;

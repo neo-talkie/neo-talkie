@@ -279,7 +279,7 @@ public final class StatusActivity extends Activity {
           }
           text(c,UiContract.DEVICE_MENU[first+row],UiContract.MENU_TEXT_X,
               UiContract.MENU_BASELINE+row*UiContract.MENU_ROW_HEIGHT,UiContract.MENU_FONT,
-              UiContract.C_PAGE_TITLE,UiContract.RIGHT-UiContract.MENU_TEXT_X);
+              selected == first+row ? UiContract.C_WHITE : UiContract.C_INK,UiContract.RIGHT-UiContract.MENU_TEXT_X);
         }
         if (UiContract.DEVICE_MENU.length > UiContract.MENU_VISIBLE_ROWS)
           nextCounter = (first / UiContract.MENU_VISIBLE_ROWS + 1) + "/" +
@@ -296,20 +296,22 @@ public final class StatusActivity extends Activity {
         counterImage = counter.isEmpty() ? null : PixelArt.numbers(counter, 2, UiContract.C_ACCENT);
       }
       if (counterImage != null) c.drawBitmap(counterImage, 154 - counterImage.getWidth(), 34, null);
-      paint.setColor(UiContract.C_VOLUME_BG);
+      paint.setColor(UiContract.C_WAIT_BG);
       c.drawRect(0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.HEIGHT, paint);
+      paint.setColor(UiContract.C_WAIT_EDGE);
+      c.drawRect(0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.STATUS_FOOTER_TOP + 1, paint);
       if (menu) {
         text(c,UiContract.T_MENU_ENTER,UiContract.STATUS_HINT_X,UiContract.STATUS_FOOTER_Y,
-            UiContract.STATUS_HINT_FONT,UiContract.C_ACCENT,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_X);
+            UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_X);
       } else {
         c.drawBitmap(PixelArt.PAGE_ARROWS, UiContract.STATUS_HINT_X, UiContract.STATUS_ARROW_Y, null);
         text(c, UiContract.T_STATUS_PAGE_KEYS,
             UiContract.STATUS_HINT_TEXT_X, UiContract.STATUS_FOOTER_Y, UiContract.STATUS_HINT_FONT,
-            UiContract.C_ACCENT, UiContract.STATUS_HINT_EXIT_X - UiContract.STATUS_HINT_X);
+            UiContract.C_INK, UiContract.STATUS_HINT_EXIT_X - UiContract.STATUS_HINT_X);
       }
       text(c, UiContract.T_STATUS_EXIT_KEY,
           exitLeft(),
-          UiContract.STATUS_FOOTER_Y, UiContract.STATUS_HINT_FONT, UiContract.C_ACCENT,
+          UiContract.STATUS_FOOTER_Y, UiContract.STATUS_HINT_FONT, UiContract.C_INK,
           UiContract.WIDTH - UiContract.STATUS_HINT_EXIT_X);
       volume.draw(c);
       c.restore();

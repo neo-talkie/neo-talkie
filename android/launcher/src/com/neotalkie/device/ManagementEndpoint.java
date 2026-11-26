@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Base64;
 import java.io.*;
 import java.net.*;
@@ -28,10 +30,13 @@ final class ManagementEndpoint implements Closeable {
   private final ServerSocket listener;
   static final int BACKGROUND_PORT = 38672;
   private static final long IDLE_MS = 5 * 60 * 1000L;
+  private static final long COMPANION_SCREEN_MS = 2 * 60 * 1000L;
   private final LanHandshake handshake;
   private final byte[] boundIdentity;
   private final Handler timer = new Handler(Looper.getMainLooper());
   private final Runnable expire = this::expireIdle;
+  private final Runnable releaseScreen = this::releaseScreenLock;
+  private PowerManager.WakeLock screenLock;
   private long deadline;
   private byte[] key;
   private volatile boolean closed;
@@ -116,6 +121,7 @@ final class ManagementEndpoint implements Closeable {
     if(seq<=lastSequence || seq<=0 || closed)throw new IOException();
     byte[] plain=crypt(seq,false,Base64.decode(fields[1],Base64.NO_WRAP));
     lastSequence=seq;
+    extendScreen();
     JSONObject result;
     try{
       JSONObject req=new JSONObject(new String(plain,StandardCharsets.UTF_8));
@@ -182,6 +188,33 @@ final class ManagementEndpoint implements Closeable {
     key=fresh;
     lastSequence=0;
     touch();
+    extendScreen();
+  }
+  private synchronized void extendScreen() {
+    if (closed || !ScreenPower.interactive(context)) return;
+    int timeout = UiContract.IDLE_SCREEN_MS;
+    try {
+      timeout = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, UiContract.IDLE_SCREEN_MS);
+    } catch (Exception ignored) {}
+    long holdMs = Math.max(1000L, COMPANION_SCREEN_MS - Math.max(0, Math.min(timeout, (int) COMPANION_SCREEN_MS)));
+    if (screenLock == null) {
+      PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+      if (pm == null) return;
+      screenLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "NeoTalkie:companion-awake");
+      screenLock.setReferenceCounted(false);
+    }
+    screenLock.acquire(holdMs + 2000L);
+    timer.removeCallbacks(releaseScreen);
+    timer.postDelayed(releaseScreen, holdMs);
+  }
+  private synchronized void releaseScreenLock() {
+    timer.removeCallbacks(releaseScreen);
+    if (screenLock != null) {
+      if (screenLock.isHeld()) {
+        try { screenLock.release(); } catch (RuntimeException ignored) {}
+      }
+      screenLock = null;
+    }
   }
   private void touch() {
     deadline=SystemClock.elapsedRealtime()+IDLE_MS;
@@ -212,6 +245,7 @@ final class ManagementEndpoint implements Closeable {
     Socket client=currentSocket;
     if(client!=null)try{client.close();}catch(IOException ignored){}
     clearKey();
+    releaseScreenLock();
     if (handshake!=null) handshake.close();
   }
 }

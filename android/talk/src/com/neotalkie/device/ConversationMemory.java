@@ -11,7 +11,22 @@ final class ConversationMemory {
   private final long idleMs;
   private final ArrayList<String[]> turns = new ArrayList<>();
   private long touched, generation;
-  private String topic = "";
+  private String topic = "", conversationId = "";
+
+  static final class TurnContext {
+    final String id;
+    final List<String[]> history;
+    TurnContext(String id, List<String[]> history) {
+      this.id = id;
+      this.history = history;
+    }
+  }
+
+  synchronized TurnContext beginTurn(long now) {
+    List<String[]> history = snapshot(now);
+    String id = history.isEmpty() || conversationId.isEmpty() ? UUID.randomUUID().toString() : conversationId;
+    return new TurnContext(id, history);
+  }
 
   ConversationMemory(File file) {
     this(file,IDLE_MS);
@@ -22,7 +37,7 @@ final class ConversationMemory {
     if (!file.isFile()) return;
     try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
       int version = in.readInt();
-      if (file.length() > 200000 || (version != 1 && version != 2)) throw new IOException("history format");
+      if (file.length() > 200000 || (version < 1 || version > 3)) throw new IOException("history format");
       touched = in.readLong();
       int count = in.readInt(), chars = 0;
       if (count < 0 || count > MAX_TURNS) throw new IOException("history count");
@@ -36,10 +51,11 @@ final class ConversationMemory {
             || chars > MAX_CHARS) throw new IOException("history size");
         turns.add(new String[] {user, reply});
       }
-      if (version == 2) topic = in.readUTF();
+      if (version >= 2) topic = in.readUTF();
+      if (version >= 3) conversationId = in.readUTF();
       if (in.read() != -1) throw new IOException("history trailing data");
     } catch (IOException e) {
-      topic = "";
+      topic = conversationId = "";
       turns.clear();
       file.delete();
     }
@@ -47,7 +63,7 @@ final class ConversationMemory {
 
   private void expire(long now) {
     if (now < touched || now - touched >= idleMs) {
-      topic = "";
+      topic = conversationId = "";
       turns.clear();
       file.delete();
     }
@@ -66,15 +82,16 @@ final class ConversationMemory {
 
   synchronized void clear() throws IOException {
     generation++;
-    topic = "";
+    topic = conversationId = "";
     turns.clear();
     touched = 0;
     save();
   }
 
   synchronized void rememberIfCurrent(
-      long expected, String user, String reply, String newTopic, long now, boolean interrupted) throws IOException {
-    if (expected != generation || user.isEmpty() || idleMs == 0) return;
+      long expected, String id, String user, String reply, String newTopic, long now, boolean interrupted) throws IOException {
+    if (expected != generation || user.isEmpty() || (!interrupted && reply.isEmpty()) || idleMs == 0) return;
+    conversationId = id;
     topic = newTopic;
     if (interrupted) rememberInterrupted(user, reply, now);
     else remember(user, reply, now);
@@ -116,7 +133,7 @@ final class ConversationMemory {
     File temp = new File(file.getPath() + ".tmp");
     try (FileOutputStream stream = new FileOutputStream(temp);
         DataOutputStream out = new DataOutputStream(stream)) {
-      out.writeInt(2);
+      out.writeInt(3);
       out.writeLong(touched);
       out.writeInt(turns.size());
       for (String[] turn : turns) {
@@ -124,6 +141,7 @@ final class ConversationMemory {
         out.writeUTF(turn[1]);
       }
       out.writeUTF(topic);
+      out.writeUTF(conversationId);
       out.flush();
       stream.getFD().sync();
     }

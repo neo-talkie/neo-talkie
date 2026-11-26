@@ -17,7 +17,7 @@ final class RecentTurns extends SQLiteOpenHelper {
   public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){throw new IllegalStateException();}
   void add(Config cfg,SpeechEngine.Turn turn)throws Exception{
     if(turn.userText.isEmpty() && turn.replyText.isEmpty())return;
-    JSONObject row=new JSONObject().put("time",turn.wallTime).put("channelId",cfg.channelId)
+    JSONObject row=new JSONObject().put("conversationId",turn.conversationId).put("followUp",!turn.history.isEmpty()).put("time",turn.wallTime).put("channelId",cfg.channelId)
         .put("channelName",cfg.channelName).put("model",cfg.model).put("question",clip(turn.userText))
         .put("topic",turn.topic).put("answer",clip(turn.replyText)).put("usage",turn.usage).put("speaker",cfg.speaker)
         .put("elapsedMs",android.os.SystemClock.elapsedRealtime()-turn.started).put("searchCalls",turn.searchCalls);

@@ -2,7 +2,7 @@
 package com.neotalkie.device;
 
 final class UiContract {
-  static final String HASH="967909119a2e332de80e0659f2f30c0ccc2dffb2f6831c5f4f23b86b6d3c7c5b";
+  static final String HASH="3eaf8d2646952b6c2cb8f11e2dcd51d166fe7692103d539026a8dfd77c22647d";
   static final String T_TEXT_000="";
   static final String T_TEXT_001=" 分钟";
   static final String T_TEXT_003=" 未通过";
@@ -161,7 +161,7 @@ final class UiContract {
   static final String T_BLE_ENTRY="手机配置";
   static final String T_BLE_STARTING="正在开启蓝牙";
   static final String T_BLE_READY="等待手机连接";
-  static final String T_BLE_SCAN="小程序中点击扫描";
+  static final String T_BLE_SCAN="使用小程序‘喂喂有回音’连接";
   static final String T_BLE_CONNECTED="手机已连接";
   static final String T_BLE_SEND_TEST="请在手机继续";
   static final String T_BLE_PASSED="验证通过";
@@ -172,8 +172,8 @@ final class UiContract {
   static final String T_BLE_EXPIRED="本次验证已结束";
   static final String T_BLE_TEST_ONLY="本次不修改Wi-Fi";
   static final String T_BLE_EXIT="5分钟内有效 EXIT返回";
-  static final String T_WIFI_PAIR="核对上方确认码";
-  static final String T_WIFI_CONFIRM="MENU 授权后台管理";
+  static final String T_WIFI_PAIR="核对确认码";
+  static final String T_WIFI_CONFIRM="确认后授权后台管理";
   static final String T_MANAGER_OPTIONS="上下 管理选项 · EXIT";
   static final String T_MANAGER_ENABLE="开启后台管理？";
   static final String T_MANAGER_DISABLE="关闭后台管理？";
@@ -190,6 +190,15 @@ final class UiContract {
   static final String T_WIFI_TIMEOUT="连接超时";
   static final String T_WIFI_CANCELLED="配网已取消";
   static final String T_WIFI_FAILED="网络配置失败";
+  static final String T_BLE_FAILED_HINT="请重试或检查蓝牙";
+  static final String T_BLE_UNAVAILABLE_HINT="请检查设备蓝牙";
+  static final String T_BLE_EXPIRED_HINT="按 MENU 重新开启";
+  static final String T_BLE_RETRY_KEY="MENU 重试";
+  static final String T_BLE_APPROVE_KEY="MENU 授权";
+  static final String T_BLE_CONFIRM_KEY="MENU 确认";
+  static final String T_BLE_OPTIONS_KEY="选项";
+  static final String T_BLE_CANCEL_KEY="EXIT 取消";
+  static final String T_MANAGER_SWITCH_HINT="上下切换其他选项";
   static final String T_WIFI_FAILURE_HINT="请查看手机提示";
   static final int WIDTH=160;
   static final int HEIGHT=128;
@@ -243,19 +252,19 @@ final class UiContract {
   static final int C_WHITE=0xffffffff;
   static final int C_INK=0xffe0eae4;
   static final int C_PTT=0xff42b49a;
-  static final int C_ACCENT=0xffb9f88a;
+  static final int C_ACCENT=0xffff6b3d;
   static final int C_DIM=0xff666666;
   static final int C_METER_BG=0xff24473e;
   static final int C_METER=0xff78d9c1;
   static final int C_WAIT_BG=0xff222222;
   static final int C_WAIT_EDGE=0xff444444;
   static final int C_WAIT_BAR=0xff888888;
-  static final int C_VOLUME_BG=0xff203a30;
-  static final int C_VOLUME_EMPTY=0xff496055;
+  static final int C_VOLUME_BG=0xff222222;
+  static final int C_VOLUME_EMPTY=0xff444444;
   static final int C_PAGE_TITLE=0xfff4f7ed;
-  static final int C_SELECTION=0xff20518a;
-  static final int C_CHECKING=0xff70b7ff;
-  static final int C_HOME_BG=0xff0d181e;
+  static final int C_SELECTION=0xfff04e1a;
+  static final int C_CHECKING=0xffff6b3d;
+  static final int C_HOME_BG=0xff0c1b18;
   static final int C_HOME_ICON=0xff183c35;
   static final int CAPTURE_MS=30000;
   static final int SHORT_INPUT_MS=1000;

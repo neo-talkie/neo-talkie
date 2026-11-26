@@ -69,15 +69,23 @@ public final class ConversationMemoryTest {
       memory.clear();
       ok(memory.remainingMillis(start + 2) == 0);
       ok(new ConversationMemory(file).snapshot(start + 2).isEmpty());
-      memory.rememberIfCurrent(oldGeneration, "late user", "late reply", "旧主题", start + 3, false);
-      memory.rememberIfCurrent(oldGeneration, "late interrupted", "reply", "旧主题", start + 4, true);
+      memory.rememberIfCurrent(oldGeneration, "stale-id", "late user", "late reply", "旧主题", start + 3, false);
+      memory.rememberIfCurrent(oldGeneration, "stale-id", "late interrupted", "reply", "旧主题", start + 4, true);
       ok(memory.snapshot(start + 5).isEmpty());
-      memory.rememberIfCurrent(memory.generation(), "new user", "new reply", "新主题", start + 6, false);
+      String id = memory.beginTurn(start + 6).id;
+      memory.rememberIfCurrent(memory.generation(), id, "new user", "new reply", "新主题", start + 6, false);
       ok(memory.snapshot(start + 7).size() == 1);
+      ok(id.equals(new ConversationMemory(file).beginTurn(start + 7).id));
       ok(new ConversationMemory(file).topic().equals("新主题"));
-      ok(memory.remainingMillis(start + 300006) == 0);
+      memory.rememberIfCurrent(memory.generation(), id, "追问", "", "续问", start + 7, true);
+      ok(new ConversationMemory(file).beginTurn(start + 8).id.equals(id));
+      ok(memory.remainingMillis(start + 300007) == 0);
+      ok(!id.equals(memory.beginTurn(start + 300007).id));
       ok(new ConversationMemory(file).snapshot(start + 300006).isEmpty());
 
+      memory.rememberIfCurrent(memory.generation(), id, "问题", "答案", "主题", start, false);
+      memory.clear();
+      ok(!id.equals(memory.beginTurn(start + 1).id));
       for (int i = 0; i < 40; i++) {
         memory.snapshot(start + i);
         memory.remember("turn " + i, "reply", start + i);

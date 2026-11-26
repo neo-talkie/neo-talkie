@@ -50,6 +50,7 @@ final class SpeechEngine {
     volatile long inputBytes, audioBytes, recordEnd, firstAudio;
     volatile boolean limited;
     volatile String topic = "";
+    String conversationId;
     long timeoutMs = 120000;
     volatile long bytesBeforeRelease, maxUploadQueue, cpuToFirstWrite;
     volatile int maxInputQueue, searchCalls;
@@ -221,7 +222,11 @@ final class SpeechEngine {
             try {
               t.check();
               // The preceding worker saves interrupted context before this snapshot.
-              if (!localOnly) t.history = memory.snapshot(System.currentTimeMillis());
+              if (!localOnly) {
+                ConversationMemory.TurnContext context = memory.beginTurn(System.currentTimeMillis());
+                t.history = context.history;
+                t.conversationId = context.id;
+              }
               if (config == null && !localOnly) throw new IOException("尚未配置语音密钥");
               if (localOnly && t.captureCheck) localCaptureCheck(t);
               else if (localOnly) localLoopback(t);
@@ -288,14 +293,14 @@ final class SpeechEngine {
               try {
                 if (t.interruptedByPtt) {
                   memory.rememberIfCurrent(
-                      t.memoryGeneration,
+                      t.memoryGeneration, t.conversationId,
                       t.interruptedUser,
                       t.interruptedReply, t.topic,
                       System.currentTimeMillis(),
                       true);
                 } else if (completed) {
                   memory.rememberIfCurrent(
-                      t.memoryGeneration,
+                      t.memoryGeneration, t.conversationId,
                       t.userText,
                       t.limited ? t.replyText + "（播报到达频道时长上限）" : t.replyText, t.topic,
                       System.currentTimeMillis(),

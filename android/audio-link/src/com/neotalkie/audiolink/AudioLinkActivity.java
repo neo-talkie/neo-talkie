@@ -62,8 +62,8 @@ public final class AudioLinkActivity extends Activity {
       button.setFocusableInTouchMode(true);
       button.setTextColor(Color.WHITE);
       StateListDrawable background = new StateListDrawable();
-      background.addState(new int[]{android.R.attr.state_focused}, new ColorDrawable(0xff30663d));
-      background.addState(new int[]{}, new ColorDrawable(0xff303030));
+      background.addState(new int[]{android.R.attr.state_focused}, new ColorDrawable(0xfff04e1a));
+      background.addState(new int[]{}, new ColorDrawable(0xff2a2a2a));
       button.setBackground(background);
       button.setOnClickListener(v -> activate(index));
       box.addView(button, new LinearLayout.LayoutParams(-1, -2));

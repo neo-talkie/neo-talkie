@@ -63,9 +63,9 @@ final class VolumeStrip {
       }
       if (current >= 0 && current < valueCache.length) {
         if (valueCache[current] == null)
-          valueCache[current] = PixelArt.numbers(current + "/" + maximum, 2, UiContract.C_PAGE_TITLE);
+          valueCache[current] = PixelArt.numbers(current + "/" + maximum, 2, UiContract.C_WHITE);
         value = valueCache[current];
-      } else value = PixelArt.numbers(current + "/" + maximum, 2, UiContract.C_PAGE_TITLE);
+      } else value = PixelArt.numbers(current + "/" + maximum, 2, UiContract.C_WHITE);
       visible = true;
       handler.removeCallbacks(dismiss);
       handler.postDelayed(dismiss, UiContract.VOLUME_MS);
@@ -87,10 +87,11 @@ final class VolumeStrip {
   // Cover the two lower action rows on the shared logical 160 x 128 canvas.
   void draw(Canvas canvas) {
     if (!visible) return;
-    paint.setColor(UiContract.C_VOLUME_BG);
+    paint.setColor(UiContract.C_WAIT_BG);
     canvas.drawRect(0, UiContract.FOOTER_TOP, UiContract.WIDTH, UiContract.HEIGHT, paint);
-    paint.setColor(UiContract.C_ACCENT);
+    paint.setColor(UiContract.C_WAIT_EDGE);
     canvas.drawRect(0, UiContract.FOOTER_TOP, UiContract.WIDTH, UiContract.FOOTER_TOP + 1, paint);
+    paint.setColor(UiContract.C_WHITE);
     paint.setTextSize(UiContract.FOOTER_FONT);
     canvas.drawText(UiContract.T_VOLUME, UiContract.LEFT, UiContract.FOOTER_LABEL_Y, paint);
     if (maximum > 0) {
@@ -98,7 +99,7 @@ final class VolumeStrip {
       int segments = Math.min(maximum, 15);
       float step = 114f / segments;
       for (int i = 0; i < segments; i++) {
-        paint.setColor((i + 1) * maximum <= current * segments ? UiContract.C_ACCENT : UiContract.C_VOLUME_EMPTY);
+        paint.setColor((i + 1) * maximum <= current * segments ? UiContract.C_WAIT_BAR : UiContract.C_WAIT_EDGE);
         canvas.drawRect(
             Math.round(6 + i * step), UiContract.BAR_Y, Math.round(6 + (i + 1) * step) - 3, UiContract.BAR_Y + UiContract.BAR_HEIGHT, paint);
       }

@@ -165,48 +165,89 @@ public final class HomeActivity extends Activity {
 
   final class HomePanel extends View {
     final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    String cachedPage = "";
-    Bitmap pageNumber;
+    float downY;
 
     HomePanel() {
       super(HomeActivity.this);
       setFocusable(true);
     }
 
+    void text(Canvas c, String s, float x, float y, int size, int color, int width) {
+      paint.setTextSize(size);
+      paint.setColor(color);
+      if (paint.measureText(s) > width) {
+        int end = paint.breakText(s, true, width - paint.measureText("…"), null);
+        s = s.substring(0, end) + "…";
+      }
+      c.drawText(s, x, y, paint);
+    }
+
     protected void onDraw(Canvas canvas) {
       canvas.save();
       canvas.scale(getWidth() / 160f, getHeight() / 128f);
-      canvas.drawColor(Color.rgb(13, 24, 30));
+      canvas.drawColor(UiContract.C_BG);
       statusStrip.draw(canvas);
-      paint.setTextAlign(Paint.Align.CENTER);
+      paint.setTextAlign(Paint.Align.LEFT);
       if (!entries.isEmpty()) {
+        int visible = UiContract.MENU_VISIBLE_ROWS;
+        int first = Math.max(0, Math.min(selected - visible + 1, entries.size() - visible));
+        int activeRow = selected - first;
+        paint.setColor(UiContract.C_SELECTION);
+        canvas.drawRect(
+            UiContract.LEFT,
+            UiContract.MENU_TOP + activeRow * UiContract.MENU_ROW_HEIGHT,
+            UiContract.RIGHT,
+            UiContract.MENU_TOP + (activeRow + 1) * UiContract.MENU_ROW_HEIGHT,
+            paint);
+        for (int row = 0; row < visible && first + row < entries.size(); row++) {
+          text(
+              canvas,
+              entries.get(first + row).label,
+              UiContract.MENU_TEXT_X,
+              UiContract.MENU_BASELINE + row * UiContract.MENU_ROW_HEIGHT,
+              UiContract.MENU_FONT,
+              row == activeRow ? UiContract.C_WHITE : UiContract.C_INK,
+              UiContract.RIGHT - UiContract.MENU_TEXT_X - 4);
+        }
+        if (entries.size() > visible) {
+          int trackY = UiContract.MENU_TOP;
+          int trackH = visible * UiContract.MENU_ROW_HEIGHT;
+          int thumbH = Math.max(12, Math.round((float) trackH * visible / entries.size()));
+          int thumbY =
+              trackY + Math.round((float) (trackH - thumbH) * first / (entries.size() - visible));
+          paint.setColor(0xff22302d);
+          canvas.drawRect(156, trackY, 158, trackY + trackH, paint);
+          paint.setColor(0xff7b8d89);
+          canvas.drawRect(156, thumbY, 158, thumbY + thumbH, paint);
+        }
+        paint.setColor(UiContract.C_WAIT_BG);
+        canvas.drawRect(0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.HEIGHT, paint);
+        paint.setColor(UiContract.C_WAIT_EDGE);
+        canvas.drawRect(
+            0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.STATUS_FOOTER_TOP + 1, paint);
+        text(
+            canvas,
+            UiContract.T_MENU_ENTER,
+            UiContract.STATUS_HINT_X,
+            UiContract.STATUS_FOOTER_Y,
+            UiContract.STATUS_HINT_FONT,
+            UiContract.C_INK,
+            UiContract.STATUS_HINT_EXIT_X - UiContract.STATUS_HINT_X);
+        paint.setTextSize(UiContract.STATUS_HINT_FONT);
+        float switchTextX = UiContract.RIGHT - paint.measureText(UiContract.T_SWITCH_FEATURE);
+        int arrowGap =
+            UiContract.STATUS_HINT_TEXT_X - UiContract.STATUS_HINT_X - UiContract.STATUS_ARROW_WIDTH;
+        int switchArrowX = Math.round(switchTextX - arrowGap - UiContract.STATUS_ARROW_WIDTH);
+        canvas.drawBitmap(PixelArt.PAGE_ARROWS, switchArrowX, UiContract.STATUS_ARROW_Y, null);
+        text(
+            canvas,
+            UiContract.T_SWITCH_FEATURE,
+            switchTextX,
+            UiContract.STATUS_FOOTER_Y,
+            UiContract.STATUS_HINT_FONT,
+            UiContract.C_INK,
+            UiContract.WIDTH - UiContract.STATUS_HINT_EXIT_X);
         Entry entry = entries.get(selected);
-        if (entry.intent.getComponent() != null
-            && DeviceRoutes.TALK.equals(entry.intent.getComponent().getPackageName())) {
-          paint.setColor(UiContract.C_HOME_ICON);
-          canvas.drawRect(56, 31, 104, 79, paint);
-          canvas.drawBitmap(PixelArt.HOME_MARK, 58, 39, null);
-        } else {
-          entry.icon.setBounds(56, 31, 104, 79);
-          entry.icon.draw(canvas);
-        }
-        paint.setColor(Color.WHITE);
-        paint.setTextSize(22);
-        String label = entry.label;
-        while (paint.measureText(label) > 150 && label.length() > 1)
-          label = label.substring(0, label.length() - 1);
-        canvas.drawText(label, 80, 98, paint);
-        String page = (selected + 1) + "/" + entries.size();
-        if (!page.equals(cachedPage)) {
-          cachedPage = page;
-          pageNumber = PixelArt.numbers(page, 2, UiContract.C_ACCENT);
-        }
-        canvas.drawBitmap(pageNumber, 154 - pageNumber.getWidth(), 33, null);
-        paint.setColor(UiContract.C_VOLUME_BG);
-        canvas.drawRect(0, 104, 160, 128, paint);
-        paint.setTextSize(14);
-        paint.setColor(UiContract.C_ACCENT);
-        canvas.drawText(UiContract.T_TEXT_009, 80, 122, paint);
         setContentDescription(entry.label + UiContract.T_TEXT_151 + (selected + 1) + UiContract.T_TEXT_149 + entries.size() + UiContract.T_TEXT_148);
       }
       volumeStrip.draw(canvas);
@@ -214,8 +255,18 @@ public final class HomeActivity extends Activity {
     }
 
     public boolean onTouchEvent(android.view.MotionEvent event) {
+      float y = event.getY() * 128f / getHeight();
+      if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        downY = y;
+        return true;
+      }
       if (event.getAction() == MotionEvent.ACTION_UP) {
-        open(selected);
+        if (Math.abs(y - downY) > 20 && !entries.isEmpty()) {
+          selected = (selected + (y < downY ? 1 : -1) + entries.size()) % entries.size();
+          panel.invalidate();
+        } else {
+          open(selected);
+        }
         performClick();
       }
       return true;

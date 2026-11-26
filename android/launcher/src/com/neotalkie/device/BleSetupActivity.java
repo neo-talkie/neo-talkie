@@ -290,19 +290,80 @@ public final class BleSetupActivity extends Activity {
   final class Panel extends View {
     final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     Panel(){super(BleSetupActivity.this);setFocusable(true);}
-    void text(Canvas c,String value,int y,int size,int color){paint.setColor(color);paint.setTextSize(size);c.drawText(value,6,y,paint);}
+    void text(Canvas c,String value,float x,float y,int size,int color,int width){
+      paint.setColor(color);
+      paint.setTextSize(size);
+      if (paint.measureText(value) > width) {
+        int end = paint.breakText(value, true, width - paint.measureText("…"), null);
+        value = value.substring(0, end) + "…";
+      }
+      c.drawText(value,x,y,paint);
+    }
     protected void onDraw(Canvas c){
       c.save();c.scale(getWidth()/160f,getHeight()/128f);c.drawColor(UiContract.C_BG);strip.draw(c);
-      text(c,UiContract.T_BLE_TITLE,38,15,UiContract.C_PAGE_TITLE);
-      int ip=wifiAddress();
-      text(c,ip==0?"Wi-Fi —":"IP "+android.text.format.Formatter.formatIpAddress(ip),51,11,UiContract.C_INK);
-      text(c,pairingCode.isEmpty() ? broadcastName : pairingCode,65,14,UiContract.C_ACCENT);
       String action=policyAction==2?UiContract.T_MANAGER_REVOKE:
           (background?UiContract.T_MANAGER_DISABLE:UiContract.T_MANAGER_ENABLE);
-      text(c,policyAction==0?status:action,84,16,UiContract.C_INK);
-      text(c,policyAction==0?detail:UiContract.T_MANAGER_CONFIRM,102,12,UiContract.C_INK);
-      paint.setColor(UiContract.C_VOLUME_BG);c.drawRect(0,108,160,128,paint);
-      text(c,policyAction!=0?UiContract.T_MANAGER_CANCEL:hasBinding?UiContract.T_MANAGER_OPTIONS:closed?UiContract.T_BLE_RETRY:UiContract.T_BLE_EXIT,123,12,UiContract.C_ACCENT);
+      String headline=policyAction!=0 ? action : status;
+      boolean isCode=policyAction==0 && status.equals(UiContract.T_WIFI_PAIR) && !pairingCode.isEmpty();
+      boolean isSuccess=policyAction==0 && (status.equals(UiContract.T_WIFI_SUCCESS) || status.equals(UiContract.T_BLE_PASSED));
+      boolean isWifiFlow=policyAction==0 && (status.equals(UiContract.T_WIFI_APPROVED) || status.equals(UiContract.T_WIFI_CONNECTING)
+          || status.equals(UiContract.T_WIFI_AUTH) || status.equals(UiContract.T_WIFI_TIMEOUT)
+          || status.equals(UiContract.T_WIFI_CANCELLED) || status.equals(UiContract.T_WIFI_FAILED));
+      int ip=wifiAddress();
+      String subline;
+      int subColor;
+      String note;
+      if (isCode) {
+        subline = pairingCode;
+        subColor = UiContract.C_ACCENT;
+        note = detail;
+      } else if (policyAction==0 && status.equals(UiContract.T_WIFI_SUCCESS)) {
+        subline = ip != 0 ? "IP " + android.text.format.Formatter.formatIpAddress(ip) : UiContract.T_WIFI_LOCAL;
+        subColor = UiContract.C_PTT;
+        note = ip != 0 ? detail : broadcastName;
+      } else if (isWifiFlow) {
+        subline = detail;
+        subColor = UiContract.C_INK;
+        note = broadcastName;
+      } else {
+        subline = broadcastName;
+        subColor = isSuccess ? UiContract.C_PTT : UiContract.C_ACCENT;
+        note = policyAction!=0 ? UiContract.T_MANAGER_SWITCH_HINT
+            : status.equals(UiContract.T_BLE_EXPIRED) ? UiContract.T_BLE_EXPIRED_HINT
+            : status.equals(UiContract.T_BLE_UNAVAILABLE) ? UiContract.T_BLE_UNAVAILABLE_HINT
+            : status.equals(UiContract.T_BLE_FAILED) ? UiContract.T_BLE_FAILED_HINT
+            : detail;
+      }
+      text(c,headline,UiContract.STATUS_TITLE_X,47,18,UiContract.C_PAGE_TITLE,144);
+      text(c,subline,UiContract.STATUS_TITLE_X,71,isCode?15:14,subColor,144);
+      int noteSize = 13;
+      paint.setTextSize(noteSize);
+      while (noteSize > 10 && paint.measureText(note) > 146) {
+        noteSize -= 1;
+        paint.setTextSize(noteSize);
+      }
+      text(c,note,UiContract.STATUS_TITLE_X,93,noteSize,0xff9eb0aa,146);
+
+      paint.setColor(UiContract.C_WAIT_BG);
+      c.drawRect(0,UiContract.STATUS_FOOTER_TOP,UiContract.WIDTH,UiContract.HEIGHT,paint);
+      paint.setColor(UiContract.C_WAIT_EDGE);
+      c.drawRect(0,UiContract.STATUS_FOOTER_TOP,UiContract.WIDTH,UiContract.STATUS_FOOTER_TOP+1,paint);
+
+      boolean retryable = closed || status.equals(UiContract.T_BLE_EXPIRED)
+          || status.equals(UiContract.T_BLE_UNAVAILABLE) || status.equals(UiContract.T_BLE_FAILED);
+      if (policyAction != 0) {
+        text(c,UiContract.T_BLE_CONFIRM_KEY,UiContract.STATUS_HINT_X,UiContract.STATUS_FOOTER_Y,UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_X);
+      } else if (isCode) {
+        text(c,UiContract.T_BLE_APPROVE_KEY,UiContract.STATUS_HINT_X,UiContract.STATUS_FOOTER_Y,UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_X);
+      } else if (retryable) {
+        text(c,UiContract.T_BLE_RETRY_KEY,UiContract.STATUS_HINT_X,UiContract.STATUS_FOOTER_Y,UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_X);
+      } else if (hasBinding) {
+        c.drawBitmap(PixelArt.PAGE_ARROWS,UiContract.STATUS_HINT_X,UiContract.STATUS_ARROW_Y,null);
+        text(c,UiContract.T_BLE_OPTIONS_KEY,UiContract.STATUS_HINT_TEXT_X,UiContract.STATUS_FOOTER_Y,UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.STATUS_HINT_EXIT_X-UiContract.STATUS_HINT_TEXT_X);
+      }
+      String rightHint = policyAction != 0 ? UiContract.T_BLE_CANCEL_KEY : UiContract.T_STATUS_EXIT_KEY;
+      paint.setTextSize(UiContract.STATUS_HINT_FONT);
+      text(c,rightHint,UiContract.RIGHT-paint.measureText(rightHint),UiContract.STATUS_FOOTER_Y,UiContract.STATUS_HINT_FONT,UiContract.C_INK,UiContract.WIDTH-UiContract.STATUS_HINT_EXIT_X);
       volume.draw(c);c.restore();
       setContentDescription(broadcastName+" "+status+" "+detail);
     }

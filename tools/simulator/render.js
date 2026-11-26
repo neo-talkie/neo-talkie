@@ -238,7 +238,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     0,
     WIDTH,
     HEIGHT,
-    s.view === "sleep" ? "#030605" : s.view === "home" ? C.HOME_BG : COLORS.bg,
+    s.view === "sleep" ? "#030605" : COLORS.bg,
   );
   if (s.view === "sleep")
     return { lines: [], maxOffset: 0, total: 0, offset: 0 };
@@ -356,7 +356,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       const thumbY =
         trackY +
         Math.round(((trackH - thumbH) * first) / (labels.length - visible));
-      rect(c, 156, trackY, 2, trackH, "#223236");
+      rect(c, 156, trackY, 2, trackH, "#22302d");
       rect(c, 156, thumbY, 2, thumbH, "#7b8d89");
     }
     rect(
@@ -397,13 +397,13 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
   } else if (s.view === "ble") {
     const details = {
       starting: T.ble_test_only,
-      ready: "使用小程序‘喂喂有回音’连接",
+      ready: T.ble_scan,
       connected: T.ble_send_test,
       passed: T.ble_utf8_ok,
-      failed: "请重试或检查蓝牙",
-      unavailable: "请检查设备蓝牙",
-      expired: "按 MENU 重新开启",
-      pair: "确认后授权后台管理",
+      failed: T.ble_failed_hint,
+      unavailable: T.ble_unavailable_hint,
+      expired: T.ble_expired_hint,
+      pair: T.wifi_confirm,
       approved: T.wifi_phone,
       connecting: T.wifi_wait,
       success: T.wifi_local,
@@ -413,7 +413,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       wifiFailed: T.wifi_failure_hint,
     };
     const states = {
-      pair: "核对确认码",
+      pair: T.wifi_pair,
       approved: T.wifi_approved,
       connecting: T.wifi_connecting,
       success: T.wifi_success,
@@ -457,7 +457,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
           ? COLORS.ink
           : COLORS.orangeText;
     const note = s.policyAction
-      ? "上下切换其他选项"
+      ? T.manager_switch_hint
       : isWifiFlow
         ? s.bleName
         : s.bleStatus === "success" && !s.ip
@@ -488,7 +488,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     if (s.policyAction) {
       text(
         c,
-        "MENU 确认",
+        T.ble_confirm_key,
         L.STATUS_HINT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
@@ -498,7 +498,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     } else if (s.bleStatus === "pair") {
       text(
         c,
-        "MENU 授权",
+        T.ble_approve_key,
         L.STATUS_HINT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
@@ -508,7 +508,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     } else if (retryable) {
       text(
         c,
-        "MENU 重试",
+        T.ble_retry_key,
         L.STATUS_HINT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
@@ -520,7 +520,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         rect(c, L.STATUS_HINT_X + x, L.STATUS_ARROW_Y + y, w, h, COLORS.orangeText);
       text(
         c,
-        "选项",
+        T.ble_options_key,
         L.STATUS_HINT_TEXT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
@@ -528,7 +528,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         L.STATUS_HINT_EXIT_X - L.STATUS_HINT_TEXT_X,
       );
     }
-    const rightHint = s.policyAction ? "EXIT 取消" : T.status_exit_key;
+    const rightHint = s.policyAction ? T.ble_cancel_key : T.status_exit_key;
     font(c, L.STATUS_HINT_FONT);
     text(
       c,
@@ -596,7 +596,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         L.STATUS_TITLE_X,
         L.STATUS_ROW_Y + i * L.STATUS_ROW_HEIGHT,
         s.view === "checks" && i < 2 ? 16 : L.STATUS_ROW_FONT,
-        s.view === "checks" && i === 0 ? COLORS.teal : COLORS.ink,
+        s.view === "checks" && i === 0 ? COLORS.orangeText : COLORS.ink,
         144,
       ),
     );

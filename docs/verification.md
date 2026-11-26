@@ -38,7 +38,7 @@
 
 2026-11-26，mx_b5（MSM8909，Android 5.1.1，LMY47V，2023-12-13 构建）与 macOS 14.4 完成 HFP 麦克风实测。
 
-1. 在已授权的 USB ADB 会话中，使用实际设备序列号执行 `adb -s "$SERIAL" shell setprop persist.service.bt.hfp.client true`。用独立的 `adb -s "$SERIAL" shell getprop persist.service.bt.hfp.client` 确认返回 `true`。本机原值为空，普通 shell（UID 2000，SELinux Permissive）即可写入。其他 ROM 和普通应用的写入权限需分别验证。
+1. 在已授权的 USB ADB 会话中，使用实际设备序列号执行 `adb -s "$SERIAL" shell setprop persist.service.bt.hfp.client true`。用独立的 `adb -s "$SERIAL" shell getprop persist.service.bt.hfp.client` 确认返回 `true`。本机原值为空，普通 shell（UID 2000，SELinux Permissive）即可写入。本机普通应用的写入实测见下文。
 2. 在手台系统蓝牙设置关闭蓝牙，等到关闭后重新开启。蓝牙日志出现 `isHfpClientEnabled = true` 和 `HeadsetClientService` 启动记录。此 ROM 在该角色下执行 `dumpsys bluetooth_manager` 打印配置列表时曾抛出空指针异常，可通过 `dumpsys activity services com.android.bluetooth`、蓝牙日志和电脑端的 HFP 服务识别结果交叉确认。
 3. 在 Mac 蓝牙设置中选择目标手台，核对双方配对码后连接。Mac 枚举出蓝牙输入、输出端点，输入为单声道、16 kHz。本次配对后，Mac 自动将默认输入和输出都切换到了手台。
 4. 将采集端绑定到手台的 Core Audio 输入端点，测试音单独从 Mac Studio 内置扬声器播放。依次播放 1,000 Hz 和 1,500 Hz，只在内存中统计 16 位 PCM 的频率分量。手台日志显示宽带 SCO 开启，`start_hfp` 返回 0，状态进入 `AudioOn`。
@@ -50,3 +50,9 @@
 | 播放 1,500 Hz | 41 | 1,754 |
 
 以上验证了从物理声源经手台麦克风到 Mac 的实时音频通路。Windows 兼容性、重启重连和现有对讲 PTT 与麦克风模式的切换仍待单独验收。恢复原蓝牙角色时，用相同 ADB 会话将该属性设为 `false`，再关闭并重新开启手台蓝牙。原厂代码在属性为空时同样按 `false` 处理。
+
+### 从普通 APK 启用
+
+在同一台手台安装独立 APK「蓝牙麦克风」。安装包只声明普通蓝牙访问和蓝牙管理权限。按「恢复原模式」后读回属性为 `false`，蓝牙服务日志也读到 `false`。从 NeoTalkie 桌面选中「蓝牙麦克风」并按确认键，应用自动将属性写为 `true`，蓝牙服务启动 `HeadsetClientService`。两次切换均由应用自己的 UID 执行。
+
+Mac 保留了已有配对，本次切换后在电脑上点「连接」恢复了 16 kHz 单声道输入。电脑内置扬声器依次播放 1,000 Hz 和 1,500 Hz，从手台输入分别测得对应频率幅值 4,239 和 1,650，播放前基线分别为 11 和 6。退出应用后再次从桌面打开，蓝牙服务进程和电脑输入端点均保持在线。若连接新电脑，通过应用中的「蓝牙配对」打开系统蓝牙设置并核对两端配对码。此项验证覆盖 mx_b5 当前 ROM，其他固件的系统属性访问策略可能不同。

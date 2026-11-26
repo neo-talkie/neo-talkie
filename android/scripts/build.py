@@ -39,13 +39,18 @@ def build(app):
     for name in ['classes', 'generated', 'dex', 'assets']:
         (OUT / name).mkdir(parents=True)
     if app == 'talk': shutil.copyfile(ROOT / 'config/prompts/default.txt', OUT / 'assets/prompt.txt')
-    for name in ['THIRD_PARTY.md', 'LICENSE-APACHE-2.0.txt']:
-        shutil.copyfile(APP / name, OUT / 'assets' / name)
+    if app == 'hfp-mic':
+        shutil.copyfile(ROOT / 'LICENSE', OUT / 'assets/LICENSE-APACHE-2.0.txt')
+    else:
+        for name in ['THIRD_PARTY.md', 'LICENSE-APACHE-2.0.txt']:
+            shutil.copyfile(APP / name, OUT / 'assets' / name)
     run(BT / 'aapt2', 'compile', '--dir', APP / 'res', '-o', OUT / 'resources.zip')
     run(BT / 'aapt2', 'link', '-o', OUT / 'resources.apk', '-I', ANDROID,
         '--manifest', APP / 'AndroidManifest.xml', '--java', OUT / 'generated',
         '-A', OUT / 'assets', OUT / 'resources.zip')
-    sources = sorted((ROOT / 'android/common/src').rglob('*.java')) + sorted((APP / 'src').rglob('*.java')) + sorted((OUT / 'generated').rglob('*.java'))
+    sources = sorted((APP / 'src').rglob('*.java')) + sorted((OUT / 'generated').rglob('*.java'))
+    if app != 'hfp-mic':
+        sources += sorted((ROOT / 'android/common/src').rglob('*.java'))
     run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-source', '8', '-target', '8',
         '-Xlint:-options', '-classpath', os.pathsep.join(map(str, [ANDROID, *libs])),
         '-d', OUT / 'classes', *sources)
@@ -73,6 +78,6 @@ def build(app):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('app', choices=['talk', 'launcher', 'all'], nargs='?', default='all')
+    parser.add_argument('app', choices=['talk', 'launcher', 'hfp-mic', 'all'], nargs='?', default='all')
     args = parser.parse_args()
-    for app in (['launcher', 'talk'] if args.app == 'all' else [args.app]): build(app)
+    for app in (['launcher', 'talk', 'hfp-mic'] if args.app == 'all' else [args.app]): build(app)

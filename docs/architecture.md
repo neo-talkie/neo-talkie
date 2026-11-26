@@ -1,14 +1,15 @@
 # NeoTalkie 架构
 
-交付两个 Android 应用：`com.neotalkie.launcher` 桌面和 `com.neotalkie.talk` 对讲。两 APK 使用相同开发签名，独立进程、独立私有文件与生命周期。共享 Java 命名空间 `com.neotalkie.device` 是代码组织方式，不代表共享 Android UID 或数据。禁止使用 sharedUserId。
+核心功能由两个 Android 应用提供：`com.neotalkie.launcher` 桌面和 `com.neotalkie.talk` 对讲。两 APK 使用相同开发签名，独立进程、独立私有文件与生命周期。共享 Java 命名空间 `com.neotalkie.device` 是代码组织方式，不代表共享 Android UID 或数据。禁止使用 sharedUserId。
 
 桌面持有设备状态和 HOME 入口，通过 Android 系统设置首页访问 Wi-Fi 及其他系统配置，或使用手机配置。对讲持有语音配置、麦克风轮次和上下文。桌面不依赖语音密钥，不包含 OkHttp/Okio 或模型代码，也不申请麦克风权限。桌面固定入口为对讲、设备设置、系统设置和手机配置。手机配置提供前台五分钟 BLE 会话，承接物理授权、加密配置和 Wi-Fi 连接状态。对讲菜单中的系统状态通过明确的组件目标进入桌面；语音连通检查留在对讲 APK。公共 UI/电源/音量代码从 `android/common/` 编译进两个 APK，不作为独立安装包。
 
 ## 工程与依赖边界
 
-根目录是多工程集合，使用 Makefile 调度构建，不是 npm workspace。完整目录树见 [README](../README.md)。两个 APK 分别位于 `android/launcher` 和 `android/talk`。
+根目录是多工程集合，使用 Makefile 调度构建，不是 npm workspace。完整目录树见 [README](../README.md)。两个核心 APK 分别位于 `android/launcher` 和 `android/talk`。
 
 - `android/` 内两个应用各有 Manifest、资源和 Java 源码；`common/` 由构建脚本分别编译进两个 APK。`scripts/` 直接调用 Android SDK、JDK 和 Python，不要求 Node 或 Gradle。
+- `android/hfp-mic/` 是可选的独立 APK。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，用户打开它后，应用进程写入并读回厂商 HFP 角色属性，按需重启蓝牙。配对和麦克风采集由系统蓝牙服务负责。「恢复原模式」切回耳机网关。见[真机验证](verification.md)。
 - `tools/` 独立声明 Playwright、PNG 和图片比较依赖，包含离线模拟器与共享 UI 校验工具。它读取 `config/radio-ui/` 并生成 Android/模拟器适配代码，不打入设备运行包。
 
 桌面「系统设置」发送 `Settings.ACTION_SETTINGS`，打开系统设置首页；「手机配置」仍进入 NeoTalkie 的 BLE 页面。系统设置由设备 ROM 提供，本仓库不实现或修改它。

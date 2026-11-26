@@ -2,12 +2,13 @@
 
 An AI walkie-talkie, built around a small Android handset.
 
-NeoTalkie 是独立的设备端项目，提供两个 Android APK。目标设备是 Android 5.1、160×128 屏幕的实体 PTT 手台；其他机型需要验证按键和权限。仓库不包含平台后台、云端部署、账号数据库、私有密钥或录音。
+NeoTalkie 是独立的设备端项目，提供桌面、对讲和可选的蓝牙麦克风 APK。目标设备是 Android 5.1、160×128 屏幕的实体 PTT 手台；其他机型需要验证按键和权限。仓库不包含平台后台、云端部署、账号数据库、私有密钥或录音。
 
 | 交付物 | 目录 | 功能 |
 | --- | --- | --- |
 | NeoTalkie 桌面 | `android/launcher/` | HOME、应用入口、网络/系统信息、打开 Android 系统设置首页 |
 | NeoTalkie 对讲 | `android/talk/` | 实体 PTT、ASR → AI → TTS、短期上下文、语音服务诊断 |
+| 蓝牙麦克风 | `android/hfp-mic/` | mx_b5 专用，打开后启用电脑蓝牙麦克风模式 |
 
 **在手台打开「手机配置」即可用微信助手管理本机。** 首次连接核对两端确认码并按 MENU。启用后台管理后，在对讲期间打开助手即可经同一 Wi-Fi 重连。助手可以配置 Wi-Fi、模型、密钥及频道，按需拉取最近 100 条问答和用量。[操作说明](docs/ble-provisioning.md)
 
@@ -22,7 +23,7 @@ make test
 
 首次构建需按启用文档安装 JDK 17 和 Android SDK；`setup.py` 只下载并校验公开的 Java 依赖。测试只访问本机，不连接语音服务。
 
-输出：`android/launcher/build/neotalkie-launcher.apk`、`android/talk/build/neotalkie-talk.apk`。
+输出：`android/launcher/build/neotalkie-launcher.apk`、`android/talk/build/neotalkie-talk.apk`、`android/hfp-mic/build/neotalkie-hfp-mic.apk`。
 
 目录按平台和用途组织：
 
@@ -30,6 +31,7 @@ make test
 Neo-Talkie/
 ├── android/                Android 工程（Java + Android SDK）
 │   ├── launcher/           桌面 APK
+│   ├── hfp-mic/            可选的 mx_b5 蓝牙麦克风 APK
 │   ├── talk/               对讲 APK
 │   ├── common/             两个 APK 共用的 Java 源码
 │   └── scripts/            构建、测试与 ADB 工具

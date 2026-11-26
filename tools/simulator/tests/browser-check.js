@@ -121,7 +121,29 @@ async () => {
   check('last navigation resets deadline', sim.state.phase === 'finished');
   await wait(3000);
   check('5 second inactivity returns ready', sim.state.phase === 'idle');
-  sim.select('ready');sim.action('more');check('default channel is a placeholder',sim.state.view==='main');
+  sim.select('finished');
+  sim.action('down');
+  sim.action('back');
+  check('EXIT closes a retained answer and keeps its conversation', sim.state.view === 'main' &&
+    sim.state.phase === 'idle' && sim.state.hasContext && sim.state.offset === 0 && !sim.state.reviewUntil);
+  sim.action('back');
+  check('a second EXIT leaves the ready screen', sim.state.view === 'home');
+  sim.select('ready');
+  const channelButton = document.querySelector('[data-key=more]');
+  const channelScreen = document.getElementById("native-screen");
+  await wait(150); // Let the previous long-answer footer finish fading in.
+  const firstChannelScreen = channelScreen.toDataURL();
+  channelButton.click();
+  check('lower key displays the second channel', sim.state.channelIndex === 1 && channelScreen.toDataURL() !== firstChannelScreen);
+  const keyDown = (code, repeat = false) =>
+    document.body.dispatchEvent(new KeyboardEvent('keydown', {code, repeat, bubbles: true}));
+  keyDown('ArrowRight');
+  check('right key does not change the channel', sim.state.channelIndex === 1);
+  keyDown('F8');
+  keyDown('F8', true);
+  check('holding F8 steps once', sim.state.channelIndex === 2);
+  keyDown('F8');
+  check('third channel wraps to the first', sim.state.channelIndex === 0 && channelScreen.toDataURL() === firstChannelScreen);
   sim.action('confirm');check('MENU opens menu',sim.state.view==='menu');
   sim.action('confirm');check('MENU enters network test',sim.state.view==='diagnostics');
   sim.action('down');check('network test pages while running',sim.state.page===1);

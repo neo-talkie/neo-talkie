@@ -2,6 +2,7 @@ package com.neotalkie.device;
 
 import android.app.Activity;
 import android.content.*;
+import android.database.ContentObserver;
 import android.graphics.*;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -52,14 +53,21 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
           compactText = false;
           answerText = false;
           refreshContext();
-          state = idleTitle();
-          detail = UiContract.T_HOLD_PTT;
+          showReady();
           panel.invalidate();
         }
       };
   private final RecordingFeedback feedback = new RecordingFeedback();
   private boolean foreground, held;
-  private long configVersion=Long.MIN_VALUE;
+  private long engineVersion = Long.MIN_VALUE;
+  private JSONObject selectedConfig;
+  private String channelName = UiContract.T_DEFAULT_CHANNEL;
+  private boolean voiceConfigured;
+  private final ContentObserver configObserver = new ContentObserver(main) {
+    @Override public void onChange(boolean selfChange) {
+      if (foreground) readSelectedConfig();
+    }
+  };
   private long lastMenu;
   private AudioManager audio;
   private PowerManager.WakeLock wake;
@@ -105,32 +113,90 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
   protected void onResume() {
     super.onResume();
     foreground = true;
-    Config config=null;
-    try{config=new Config(this);}catch(Exception ignored){}
-    long version=config==null?-1:config.version;
-    if(engine==null || configVersion!=version){
-      if(engine!=null)engine.close();
-      configVersion=version;
-      String filename=config==null || config.epoch.isEmpty()?"conversation.bin":"conversation-"+config.epoch+".bin";
-      if(config!=null){
-        File[] obsolete=getFilesDir().listFiles();
-        if(obsolete!=null)for(File f:obsolete){
-          if((f.getName().equals("conversation.bin") || f.getName().matches("conversation-[a-f0-9-]{36}\\.bin")) && !filename.equals(f.getName()))f.delete();
-        }
-      }
-      engine=new SpeechEngine(config,this,new File(getFilesDir(),filename),audio);
-      if(config==null){state=UiContract.T_PHASE_UNCONFIGURED;detail=UiContract.T_TEXT_122;}
-      else if(state.equals(UiContract.T_PHASE_UNCONFIGURED)){state=UiContract.T_PHASE_IDLE;detail=UiContract.T_HOLD_PTT;}
-    }
-    refreshContext();
+    getContentResolver().registerContentObserver(CompanionProvider.CONFIG_URI, false, configObserver);
+    readSelectedConfig();
     statusStrip.start();
     readPrivateCommand();
     PttNavigation.resume(this);
     panel.invalidate();
   }
 
+  private void readSelectedConfig() {
+    try {
+      selectConfig(CompanionConfig.read(this));
+    } catch (Exception e) {
+      selectedConfig = null;
+      channelName = UiContract.T_DEFAULT_CHANNEL;
+    }
+    // Legacy ADB provisioning files have no revision, including when first adding credentials.
+    if (selectedVersion() == 0 && active == null) engineVersion = Long.MIN_VALUE;
+    useSelectedConfig();
+    refreshContext();
+  }
+
+  private void selectConfig(JSONObject config) throws Exception {
+    channelName = CompanionConfig.active(config).getString("name");
+    selectedConfig = config;
+  }
+
+  private long selectedVersion() {
+    return selectedConfig == null ? -1 : selectedConfig.optLong("version", -1);
+  }
+
+  // Each turn keeps its original engine until it finishes or the operator starts another turn.
+  private void useSelectedConfig() {
+    if (active != null || engineVersion == selectedVersion()) return;
+    Config config = null;
+    if (selectedConfig != null) {
+      try {
+        config = new Config(this, selectedConfig, null);
+      } catch (Exception ignored) {
+        // Channel selection is available before voice credentials have been provisioned.
+      }
+    }
+    if (engine != null) engine.close();
+    engineVersion = selectedVersion();
+    voiceConfigured = config != null;
+    String epoch = selectedConfig == null ? "" : selectedConfig.optString("contextEpoch");
+    String filename = epoch.isEmpty() ? "conversation.bin" : "conversation-" + epoch + ".bin";
+    if (selectedConfig != null) {
+      File[] files = getFilesDir().listFiles();
+      if (files != null) for (File f : files) {
+        if ((f.getName().equals("conversation.bin") || f.getName().matches("conversation-[a-f0-9-]{36}\\.bin"))
+            && !filename.equals(f.getName())) f.delete();
+      }
+    }
+    engine = new SpeechEngine(config, this, new File(getFilesDir(), filename), audio);
+    if (!voiceConfigured || state.equals(UiContract.T_PHASE_UNCONFIGURED)) showReady();
+  }
+
+  private void showReady() {
+    state = voiceConfigured ? idleTitle() : UiContract.T_PHASE_UNCONFIGURED;
+    detail = voiceConfigured ? UiContract.T_HOLD_PTT : UiContract.T_TEXT_122;
+  }
+
+  private void nextChannel() {
+    try {
+      selectConfig(CompanionConfig.nextChannel(this));
+    } catch (Exception e) {
+      android.widget.Toast.makeText(this, UiContract.T_CHANNEL_SWITCH_FAILED, android.widget.Toast.LENGTH_SHORT).show();
+      return;
+    }
+    if (engineVersion == selectedVersion()) return;
+    previewContext = null;
+    volumeStrip.hide();
+    if (active == null) {
+      useSelectedConfig();
+      main.removeCallbacks(returnToReady);
+      returnToReady.run();
+    } else {
+      refreshContext();
+    }
+  }
+
   protected void onPause() {
     foreground = false;
+    getContentResolver().unregisterContentObserver(configObserver);
     PttNavigation.pause(this);
     main.removeCallbacks(contextExpiry);
     statusStrip.stop();
@@ -157,7 +223,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
 
   private void refreshContext() {
     main.removeCallbacks(contextExpiry);
-    long remaining = engine.contextRemaining(System.currentTimeMillis());
+    long remaining = engineVersion == selectedVersion() ? engine.contextRemaining(System.currentTimeMillis()) : 0;
     hasContext = previewContext != null ? previewContext : remaining > 0;
     if (active == null && !compactText && (state.equals(UiContract.T_PHASE_IDLE) || state.equals(UiContract.T_FOLLOWUP)))
       state = idleTitle();
@@ -225,7 +291,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       return false;
     }
     ScreenPower.busy(this, true);
-    wake.acquire(125000);
+    wake.acquire(215000); // Longest turn timeout plus teardown.
     wifi.acquire();
     return true;
   }
@@ -253,6 +319,8 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       if (local) old.cancel();
       else old.interruptForPtt();
     }
+    boolean sameChannelConfig = engineVersion == selectedVersion();
+    useSelectedConfig();
     if (!local && !online()) {
       unfocus();
       state = UiContract.T_OFFLINE;
@@ -270,7 +338,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
     active = new SpeechEngine.Turn(requestedAt);
     compactText = true;
     active.captureCheck = captureCheck;
-    if (old != null) active.continuedFromTurn = old.started;
+    if (old != null && sameChannelConfig) active.continuedFromTurn = old.started;
     heartbeat(active);
     state = local ? UiContract.T_PHASE_RECORDCHECK : UiContract.eventLabel("pttDown");
     detail = local ? UiContract.T_TEXT_042 : UiContract.T_RELEASE_SEND;
@@ -288,10 +356,11 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
     SpeechEngine.Turn old = active;
     active = null;
     if (old != null) old.cancel();
+    useSelectedConfig();
     unfocus();
     refreshContext();
-    state = idleTitle();
-    detail = message;
+    showReady();
+    if (voiceConfigured) detail = message;
     if (old != null) {
       old.mark("cancelled");
       writeState(old, true);
@@ -323,6 +392,18 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
   }
 
   @Override
+  public void onBackPressed() {
+    boolean homePrompt = state.equals(idleTitle()) && UiContract.T_HOLD_PTT.equals(detail);
+    boolean setupPrompt = state.equals(UiContract.T_PHASE_UNCONFIGURED) && UiContract.T_TEXT_122.equals(detail);
+    if (active == null && !compactText && !volumeStrip.isVisible() && (homePrompt || setupPrompt)) {
+      finish();
+      return;
+    }
+    volumeStrip.hide();
+    stop(UiContract.T_HOLD_PTT);
+  }
+
+  @Override
   public boolean dispatchKeyEvent(KeyEvent e) {
     int k = e.getKeyCode();
     boolean down = e.getAction() == KeyEvent.ACTION_DOWN;
@@ -347,7 +428,8 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       if (down && e.getRepeatCount() == 0) newConversation();
       return true;
     }
-    if (k == KeyEvent.KEYCODE_F8 || k == KeyEvent.KEYCODE_DPAD_RIGHT) {
+    if (k == KeyEvent.KEYCODE_F8) {
+      if (down && e.getRepeatCount() == 0) nextChannel();
       return true;
     }
     if (k == KeyEvent.KEYCODE_DPAD_UP || k == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -380,10 +462,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       return true;
     }
     if (k == KeyEvent.KEYCODE_BACK) {
-      if (down && e.getRepeatCount() == 0) {
-        if (active != null) stop(UiContract.T_TEXT_033);
-        else finish();
-      }
+      if (down && e.getRepeatCount() == 0) onBackPressed();
       return true;
     }
     return super.dispatchKeyEvent(e);
@@ -416,13 +495,14 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
         });
   }
 
-  public void done(final SpeechEngine.Turn t, final byte[] reply) {
+  public void done(final SpeechEngine.Turn t) {
     main.post(
         new Runnable() {
           public void run() {
             if (active != t || t.cancelled) return;
             // A capped turn must not re-arm PTT until the physical key is released.
             active = null;
+            useSelectedConfig();
             compactText = true;
             if (t.playbackFinished && !t.replyText.isEmpty()) {
               state = UiContract.eventLabel("playbackDone");
@@ -496,7 +576,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
               new Runnable() {
                 public void run() {
                   t.recording = false;
-                  done(t, null);
+                  done(t);
                 }
               },
               levelPreview ? 5000 : Math.max(0, Math.min(30000, o.optInt("completeAfterMs"))));
@@ -579,6 +659,10 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       boolean processing = processing();
       // ASR text stays inside the speech pipeline, including after PTT release.
       String label = state;
+      if (hasContext && state.equals(UiContract.T_FOLLOWUP)) {
+        String topic = engine.contextTopic();
+        if (!topic.isEmpty()) label = topic;
+      }
       String content = processing ? "" : detail == null ? "" : detail;
       if (content.equals(cachedDetail)
           && label.equals(cachedState)
@@ -614,9 +698,10 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
     void sideButton(Canvas canvas, Bitmap icon, String label, int top, boolean pressed, int alpha) {
       // Mirror the two physical side keys: upper circle, lower vertical stroke.
       canvas.drawBitmap(icon, LEFT_EDGE, top + 5, null);
+      p.setTextSize(16);
       text(
           canvas,
-          label,
+          TurnText.ellipsis(label, measure),
           CONTENT_X,
           top + 19,
           16,
@@ -647,7 +732,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
       if (hasContext)
         sideButton(
             canvas, PixelArt.NEW_CONVERSATION_BUTTON, UiContract.T_NEW_CONVERSATION, 83, touchTarget == 1, footerAlpha);
-      sideButton(canvas, PixelArt.MORE_BUTTON, UiContract.T_DEFAULT_CHANNEL, 105, touchTarget == 2, footerAlpha);
+      sideButton(canvas, PixelArt.MORE_BUTTON, channelName, 105, touchTarget == 2, footerAlpha);
       if (footerFade.running(now)) postInvalidateDelayed(20);
       boolean listening = active != null && active.recording;
       canvas.drawBitmap(listening ? PixelArt.PTT_FRAME : PixelArt.PTT, LEFT_EDGE, UiContract.PTT_Y, null);
@@ -702,6 +787,7 @@ public final class MainActivity extends Activity implements SpeechEngine.Listene
         if (target == 3) release();
         else if (e.getAction() == MotionEvent.ACTION_UP && buttonAt(e) == target) {
           if (target == 1) newConversation();
+          if (target == 2) nextChannel();
           if (target != 0) performClick();
         }
         invalidate();

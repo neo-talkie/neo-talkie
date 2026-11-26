@@ -246,7 +246,7 @@ function bindKeys() {
   });
   const map = {
     ArrowLeft: "channel",
-    ArrowRight: "more",
+    F8: "more",
     ArrowUp: "up",
     ArrowDown: "down",
     Enter: "confirm",

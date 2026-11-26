@@ -14,21 +14,40 @@ final class CompanionConfig {
     try(InputStream stream=file(c).openRead()){o=new JSONObject(Config.read(stream));}
     catch(FileNotFoundException e){o=new JSONObject();}
     if(!o.has("channels")){
-      JSONObject ch=new JSONObject().put("id","ch-01").put("name","默认频道")
+      JSONObject ch=new JSONObject().put("id","ch-01").put("name",UiContract.T_DEFAULT_CHANNEL)
           .put("speaker",o.optString("speaker","zh_female_xiaohe_uranus_bigtts")).put("contextMin",5)
           .put("systemPrompt",Config.read(c.getAssets().open("prompt.txt")).trim());
       o.put("channels",new JSONArray().put(ch)).put("activeChannelId","ch-01").put("version",0);
     }
+    JSONArray channels = o.getJSONArray("channels");
+    for (int i = 0; i < channels.length(); i++) {
+      JSONObject ch = channels.getJSONObject(i);
+      if (!ch.has("replySeconds")) ch.put("replySeconds", 30);
+    }
     return o;
   }
-  static JSONObject active(JSONObject o)throws JSONException{
+  private static int activeIndex(JSONObject o)throws JSONException{
     JSONArray channels=o.getJSONArray("channels");
     for(int i=0;i<channels.length();i++){
       JSONObject ch=channels.getJSONObject(i);
-      if(ch.getString("id").equals(o.getString("activeChannelId")))return ch;
+      if(ch.getString("id").equals(o.getString("activeChannelId")))return i;
     }
     throw new JSONException("invalid channel");
   }
+  static JSONObject active(JSONObject o)throws JSONException{
+    return o.getJSONArray("channels").getJSONObject(activeIndex(o));
+  }
+
+  static synchronized JSONObject nextChannel(Context c) throws Exception {
+    JSONObject config = read(c);
+    JSONArray channels = config.getJSONArray("channels");
+    int next = (activeIndex(config) + 1) % channels.length();
+    if (channels.length() > 1) {
+      write(c, config, channels.getJSONObject(next).getString("id"));
+    }
+    return config;
+  }
+
   static JSONObject publicInfo(JSONObject o)throws Exception{
     return new JSONObject().put("updated",o.optLong("updated")).put("version",o.getLong("version")).put("model",o.optString("model"))
         .put("hasVoice",!o.optString("voiceApiKey").isEmpty()).put("hasArk",!o.optString("arkApiKey").isEmpty())
@@ -47,28 +66,42 @@ final class CompanionConfig {
     String model=field(data,"model",180,false);
     JSONArray input=data.getJSONArray("channels"),channels=new JSONArray();
     if(input.length()<1 || input.length()>3)throw new JSONException("channels");
+    HashMap<String,Integer> savedLimits = new HashMap<>();
+    JSONArray previous = o.getJSONArray("channels");
+    for (int i = 0; i < previous.length(); i++) {
+      JSONObject ch = previous.getJSONObject(i);
+      savedLimits.put(ch.getString("id"), ch.getInt("replySeconds"));
+    }
     HashSet<String> ids=new HashSet<>();
     for(int i=0;i<input.length();i++){
       JSONObject ch=input.getJSONObject(i);
       String id=field(ch,"id",64,false), speaker=field(ch,"speaker",128,false);
       int minutes=ch.getInt("contextMin");
       if(!id.matches("[a-zA-Z0-9_-]+") || !ids.add(id) || !Arrays.asList(0,3,5,15).contains(minutes))throw new JSONException("channel");
+      Object seconds = ch.has("replySeconds") ? ch.get("replySeconds")
+          : savedLimits.containsKey(id) ? savedLimits.get(id) : Integer.valueOf(30);
+      if (!Arrays.asList(30,60,120).contains(seconds)) throw new JSONException("replySeconds");
       channels.put(new JSONObject().put("id",id).put("name",field(ch,"name",24,false)).put("speaker",speaker)
-          .put("contextMin",minutes).put("systemPrompt",field(ch,"systemPrompt",2000,true)));
+          .put("replySeconds",seconds).put("contextMin",minutes).put("systemPrompt",field(ch,"systemPrompt",2000,true)));
     }
     String active=field(data,"activeChannelId",64,false);
     if(!ids.contains(active))throw new JSONException("active");
-    if(!active.equals(o.getString("activeChannelId")))o.put("contextEpoch",UUID.randomUUID().toString());
     for(String key:Arrays.asList("voiceApiKey","arkApiKey")){
       String value=field(data,key,512,true);
       if(!value.isEmpty())o.put(key,value);
     }
-    o.put("updated",System.currentTimeMillis()).put("model",model).put("channels",channels).put("activeChannelId",active).put("version",o.getLong("version")+1);
+    o.put("model",model).put("channels",channels);
+    write(c, o, active);
+    return publicInfo(o);
+  }
+
+  private static void write(Context c, JSONObject o, String active) throws Exception {
+    if(!active.equals(o.getString("activeChannelId")))o.put("contextEpoch",UUID.randomUUID().toString());
+    o.put("activeChannelId",active).put("updated",System.currentTimeMillis()).put("version",o.getLong("version")+1);
     o.put("speaker",active(o).getString("speaker"));
     AtomicFile file=file(c);
     FileOutputStream out=file.startWrite();
     try{out.write(o.toString().getBytes("UTF-8"));file.finishWrite(out);}
     catch(IOException e){file.failWrite(out);throw e;}
-    return publicInfo(o);
   }
 }

@@ -2,6 +2,10 @@
 
 `config/radio-ui/contract.json` 保存系统文案、两应用菜单、布局、颜色、计时和图形；`scenarios.json` 保存离线场景。`tools/ui/generate.mjs` 生成共享 Java UiContract 和浏览器模块，禁止直接修改生成文件。共享源码位于 `android/common/`。
 
+工作台的单页目录同时覆盖桌面、对讲和音频互联。在独立的 `neo-talkie-design-studio/` 目录运行 `npm start`，首页显示设计基准与相同场景的 Android 实图，`/lab` 打开原模拟器。实图可在浏览器中按场景导入，命令行导入目录默认为工作台的 `data/captures/`。两种图片分别记录来源；像素回归图册由浏览器产生。
+
+修改固件契约后先生成 Java 和浏览器模块，再从独立工作台运行 `node scripts/firmware-release.mjs contract ../neo-talkie`。更新和复核设计基准、运行工作台测试后，使用 `export ../neo-talkie` 发布固定副本。`make ui-check` 校验发行摘要及每个场景的输入指纹。Android 源码复核也覆盖音频互联。
+
 桌面网络页只读本机状态；对讲网络测试页执行由用户触发的服务诊断。模拟器用 owner 区分应用，包含桌面设置、系统状态、网络场景。
 
 ```sh

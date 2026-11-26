@@ -5,7 +5,7 @@ from build import APP, JAVA, OUT, ROOT, run
 
 dest = OUT / 'test-classes'
 dest.mkdir(parents=True, exist_ok=True)
-names = ['PttHandoff', 'PttLease', 'UiContract', 'Protocol', 'Sse', 'ConversationMemory', 'ServiceCheckResult', 'RecordingFeedback', 'TurnText', 'PlaybackVolume']
+names = ['ReplyTextStream', 'PttHandoff', 'PttLease', 'UiContract', 'Protocol', 'Sse', 'ConversationMemory', 'ServiceCheckResult', 'RecordingFeedback', 'TurnText', 'PlaybackVolume']
 sources = []
 for name in names:
     candidates = list((ROOT / 'android/common/src').rglob(name + '.java')) + list((APP / 'src').rglob(name + '.java'))
@@ -18,6 +18,7 @@ for name in ['PttSequence', 'AudioRoleSwitch']:
     sources.append(ROOT / 'android/audio-link/src/com/neotalkie/audiolink' / (name + '.java'))
 sources += list((ROOT / 'android/audio-link/tests').rglob('*.java'))
 run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-d', dest, *sources)
+run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ReplyTextStreamTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ProtocolTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ConversationMemoryTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.ServiceCheckResultTest')

@@ -30,7 +30,10 @@ final class VoiceSocket extends WebSocketListener implements java.io.Closeable {
   private long maxArrivalGap, maxConsumerLag, maxBufferedBytes;
   private volatile long packetReceived;
 
-  VoiceSocket(OkHttpClient client, Request request) {
+  private final boolean playback;
+
+  VoiceSocket(OkHttpClient client, Request request, boolean playback) {
+    this.playback = playback;
     socket = client.newWebSocket(request, this);
   }
 
@@ -41,6 +44,20 @@ final class VoiceSocket extends WebSocketListener implements java.io.Closeable {
   public void onMessage(WebSocket ws, ByteString bytes) {
     if (closed) return;
     long now = SystemClock.elapsedRealtime();
+    // TTS can generate a long answer faster than the speaker consumes it. Let the
+    // WebSocket reader wait for buffer space, keeping playback memory bounded.
+    if (playback && bytes.size() <= Protocol.MAX) {
+      synchronized (this) {
+        while (!closed && (incoming.remainingCapacity() == 0 || queuedBytes.get() + bytes.size() > Protocol.MAX)) {
+          try { wait(); }
+          catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+          }
+        }
+        if (closed) return;
+      }
+    }
     int total = queuedBytes.addAndGet(bytes.size());
     if (bytes.size() > Protocol.MAX
         || total > Protocol.MAX
@@ -96,6 +113,7 @@ final class VoiceSocket extends WebSocketListener implements java.io.Closeable {
     queuedBytes.addAndGet(-p.bytes.length);
     packetReceived = p.received;
     synchronized (this) {
+      if (playback) notifyAll();
       maxConsumerLag = Math.max(maxConsumerLag, SystemClock.elapsedRealtime() - p.received);
     }
     return p.bytes;
@@ -136,7 +154,10 @@ final class VoiceSocket extends WebSocketListener implements java.io.Closeable {
   }
 
   public void close() {
-    closed = true;
+    synchronized (this) {
+      closed = true;
+      notifyAll();
+    }
     opened.countDown();
     socket.cancel();
     incoming.clear();

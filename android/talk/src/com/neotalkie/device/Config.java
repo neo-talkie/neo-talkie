@@ -7,18 +7,24 @@ import org.json.JSONObject;
 final class Config {
   final String voiceKey, arkKey, model, speaker, prompt;
   final boolean webSearch;
-  final String channelId,channelName,epoch;
-  final long contextMs,version;
+  final String channelId,channelName;
+  final long contextMs;
+  final int replySeconds;
   final Context context;
 
   Config(Context c) throws Exception {
     this(c,null);
   }
   Config(Context c,String previewSpeaker) throws Exception {
+    this(c, CompanionConfig.read(c), previewSpeaker);
+  }
+
+  Config(Context c, JSONObject o, String previewSpeaker) throws Exception {
     context=c.getApplicationContext();
-    JSONObject o=CompanionConfig.read(c),channel=CompanionConfig.active(o);
-    version=o.getLong("version");channelId=channel.getString("id");channelName=channel.getString("name");
-    epoch=o.optString("contextEpoch","");contextMs=channel.getInt("contextMin")*60000L;
+    JSONObject channel=CompanionConfig.active(o);
+    channelId=channel.getString("id");channelName=channel.getString("name");
+    replySeconds = channel.getInt("replySeconds");
+    contextMs=channel.getInt("contextMin")*60000L;
     voiceKey = o.getString("voiceApiKey");
     arkKey = o.optString("arkApiKey");
     if (voiceKey.isEmpty() || (previewSpeaker==null && arkKey.isEmpty())) throw new IOException("语音密钥未配置");
@@ -27,7 +33,7 @@ final class Config {
     speaker = previewSpeaker==null?channel.getString("speaker"):previewSpeaker;
     webSearch = o.optBoolean("webSearch", true);
     prompt =
-        channel.getString("systemPrompt") + "\n本轮语音回复必须在30秒内结束，最多90个汉字或等长短句，优先直接回答重点，不复述问题。";
+        channel.getString("systemPrompt") + "\n本轮语音回复最多" + replySeconds + "秒，正文最多" + (3 * replySeconds) + "个汉字或等长短句，直接回答重点。回答末尾另附 <topic>主题</topic>，用一至六个汉字概括用户这次说的内容。标签内仅写主题。";
   }
 
   static String read(InputStream in) throws IOException {

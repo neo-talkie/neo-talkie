@@ -6,10 +6,12 @@ import android.content.*;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.*;
 import android.widget.*;
+import com.neotalkie.device.VolumeStripOverlay;
 
 public final class AudioLinkActivity extends Activity {
   private static final String[] MODES = {"普通 PTT", "Fn 首尾点按"};
@@ -17,6 +19,7 @@ public final class AudioLinkActivity extends Activity {
   private final Button[] rows = new Button[2];
   private TextView title, status;
   private PttService ptt;
+  private VolumeStripOverlay volume;
   private boolean bound, choosingMode, resumed;
 
   private final ServiceConnection connection = new ServiceConnection() {
@@ -68,7 +71,11 @@ public final class AudioLinkActivity extends Activity {
     }
     ScrollView scroll = new ScrollView(this);
     scroll.addView(box);
-    setContentView(scroll);
+    FrameLayout screen = new FrameLayout(this);
+    screen.addView(scroll);
+    volume = new VolumeStripOverlay(this);
+    screen.addView(volume);
+    setContentView(screen);
     choosingMode = saved != null && saved.getBoolean("modes");
     rows[saved == null ? 0 : saved.getInt("row")].requestFocus();
     render();
@@ -110,8 +117,21 @@ public final class AudioLinkActivity extends Activity {
       render();
       rows[ptt.mode.ordinal()].requestFocus();
     } else if (ptt.ready) {
+      BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+      if (adapter == null || !adapter.isEnabled()) {
+        Toast.makeText(this, "蓝牙尚未开启", Toast.LENGTH_SHORT).show();
+        return;
+      }
+      if (adapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+        Toast.makeText(this, "手台已可被发现", Toast.LENGTH_SHORT).show();
+        return;
+      }
+      if (MxB5Discoverability.request(this, adapter)) {
+        showDiscoverable(MxB5Discoverability.SECONDS);
+        return;
+      }
       Intent request = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-          .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120);
+          .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, MxB5Discoverability.SECONDS);
       try {
         startActivityForResult(request, DISCOVERABLE);
       } catch (ActivityNotFoundException e) {
@@ -123,7 +143,11 @@ public final class AudioLinkActivity extends Activity {
   @Override protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
     if (request == DISCOVERABLE && result > 0)
-      Toast.makeText(this, "请在电脑蓝牙中选择本机", Toast.LENGTH_SHORT).show();
+      showDiscoverable(result);
+  }
+
+  private void showDiscoverable(int seconds) {
+    Toast.makeText(this, "手台可被发现 " + seconds + " 秒", Toast.LENGTH_SHORT).show();
   }
 
   private void showHome() {
@@ -138,6 +162,8 @@ public final class AudioLinkActivity extends Activity {
   }
 
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
+    if (volume.handleKey(event, ptt == null ? AudioManager.STREAM_MUSIC : ptt.playbackStream()))
+      return true;
     int key = event.getKeyCode();
     if (key == KeyEvent.KEYCODE_F1) {
       if (canTalk()) {
@@ -187,6 +213,7 @@ public final class AudioLinkActivity extends Activity {
 
   @Override protected void onPause() {
     resumed = false;
+    volume.hide();
     unregisterReceiver(physical);
     if (ptt != null) ptt.release();
     super.onPause();

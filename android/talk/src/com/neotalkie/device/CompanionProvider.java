@@ -7,6 +7,8 @@ import android.os.Bundle;
 import org.json.*;
 
 public final class CompanionProvider extends ContentProvider {
+  static final Uri CONFIG_URI = Uri.parse("content://com.neotalkie.talk.management/config");
+
   public boolean onCreate(){return true;}
   public Bundle call(String method,String arg,Bundle extras){
     Context c=getContext();
@@ -16,7 +18,10 @@ public final class CompanionProvider extends ContentProvider {
       JSONObject data=new JSONObject(extras.getString("data")),result;
       switch(method){
         case "info":result=CompanionConfig.publicInfo(CompanionConfig.read(c));break;
-        case "save":result=CompanionConfig.save(c,data);break;
+        case "save":
+          result=CompanionConfig.save(c,data);
+          if (!result.has("error")) c.getContentResolver().notifyChange(CONFIG_URI, null);
+          break;
         case "records":result=RecentTurns.get(c).list(data.optLong("before"));break;
         case "audition":
           String speaker=CompanionConfig.field(data,"speaker",128,false);

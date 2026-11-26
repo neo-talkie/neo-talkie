@@ -152,6 +152,7 @@
     "start_feature": "点击PTT开始",
     "view_feature": "点击PTT查看",
     "default_channel": "默认频道",
+    "channel_switch_failed": "频道切换失败",
     "menu_title": "功能菜单",
     "menu_enter": "MENU 进入",
     "device_settings": "设备设置",
@@ -294,7 +295,8 @@
     "sleep": "息屏",
     "diagnostics": "网络测试分页",
     "menu": "功能菜单",
-    "ble": "蓝牙连通验证"
+    "ble": "蓝牙连通验证",
+    "audioLink": "音频互联"
   },
   "services": [
     "text_118",

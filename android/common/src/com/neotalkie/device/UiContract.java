@@ -2,7 +2,7 @@
 package com.neotalkie.device;
 
 final class UiContract {
-  static final String HASH="92cf48f43630e658445354f3d8df33774c0e09cfa81b9561994a0fef25ddbc2e";
+  static final String HASH="967909119a2e332de80e0659f2f30c0ccc2dffb2f6831c5f4f23b86b6d3c7c5b";
   static final String T_TEXT_000="";
   static final String T_TEXT_001=" 分钟";
   static final String T_TEXT_003=" 未通过";
@@ -153,6 +153,7 @@ final class UiContract {
   static final String T_START_FEATURE="点击PTT开始";
   static final String T_VIEW_FEATURE="点击PTT查看";
   static final String T_DEFAULT_CHANNEL="默认频道";
+  static final String T_CHANNEL_SWITCH_FAILED="频道切换失败";
   static final String T_MENU_TITLE="功能菜单";
   static final String T_MENU_ENTER="MENU 进入";
   static final String T_DEVICE_SETTINGS="设备设置";

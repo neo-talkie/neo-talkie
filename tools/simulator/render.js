@@ -15,7 +15,8 @@ export const COLORS = {
   white: C.WHITE,
   ink: C.INK,
   teal: C.PTT,
-  lime: C.ACCENT,
+  orange: "#f04e1a",
+  orangeText: "#ff6b3d",
   dim: C.DIM,
 };
 const DIGITS = GRAPHICS.digits;
@@ -186,20 +187,43 @@ function getIcons() {
     ),
   });
 }
-function volume(c, s) {
-  rect(c, 0, L.FOOTER_TOP, L.WIDTH, L.HEIGHT - L.FOOTER_TOP, C.VOLUME_BG);
-  rect(c, 0, L.FOOTER_TOP, L.WIDTH, 1, COLORS.lime);
-  text(c, T.volume, L.LEFT, L.FOOTER_LABEL_Y, L.FOOTER_FONT, COLORS.lime);
-  for (let i = 0; i < 5; i++)
+function volume(c, s, level = s.volume, maximum = 5) {
+  const segments = Math.min(maximum, 15);
+  const step = 114 / segments;
+  rect(c, 0, L.FOOTER_TOP, L.WIDTH, L.HEIGHT - L.FOOTER_TOP, C.WAIT_BG);
+  rect(c, 0, L.FOOTER_TOP, L.WIDTH, 1, C.WAIT_EDGE);
+  text(c, T.volume, L.LEFT, L.FOOTER_LABEL_Y, L.FOOTER_FONT, COLORS.white);
+  for (let i = 0; i < segments; i++)
     rect(
       c,
-      Math.round(6 + i * 22.8),
+      Math.round(6 + i * step),
       111,
-      Math.round(6 + (i + 1) * 22.8) - 3 - Math.round(6 + i * 22.8),
+      Math.round(6 + (i + 1) * step) - 3 - Math.round(6 + i * step),
       12,
-      i < s.volume ? COLORS.lime : C.VOLUME_EMPTY,
+      (i + 1) * maximum <= level * segments ? C.WAIT_BAR : C.WAIT_EDGE,
     );
-  numbers(c, `${s.volume}/5`, 132, 112, 2, C.PAGE_TITLE);
+  const value = `${level}/${maximum}`;
+  numbers(c, value, 132 - (value.length - 3) * 8, 112, 2, COLORS.white);
+}
+function audioLink(c, s) {
+  rect(c, 0, 0, WIDTH, HEIGHT, "#101010");
+  const modes = s.linkPage === "modes";
+  const labels = ["普通 PTT", "Fn 首尾点按"];
+  const rows = modes
+    ? labels.map((label, i) => (i === Number(s.linkFn) ? "✓ " : "") + label)
+    : [s.linkFailed ? "重新启用" : "蓝牙配对", "模式 · " + labels[Number(s.linkFn)]];
+  c.textAlign = "center";
+  text(c, modes ? "讲话模式" : s.linkDeviceName, 80, 17, 15, "#fff", 156);
+  text(c, s.linkStatus, 80, 38, 14, "#ccc", 156);
+  rows.forEach((row, i) => {
+    rect(c, 0, 44 + i * 41, WIDTH, 39, i === s.selected ? COLORS.orange : "#2a2a2a");
+    text(c, row, 80, 69 + i * 41, 15, "#fff", 156);
+  });
+  if (s.linkToast) {
+    rect(c, 4, 79, 152, 31, "#454545");
+    text(c, s.linkToast, 80, 99, 12, "#fff", 147);
+  }
+  c.textAlign = "left";
 }
 export function renderScreen(canvas, s, now = 0, footerOpacity) {
   if (canvas.width !== WIDTH) canvas.width = WIDTH;
@@ -218,6 +242,11 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
   );
   if (s.view === "sleep")
     return { lines: [], maxOffset: 0, total: 0, offset: 0 };
+  if (s.view === "audioLink") {
+    audioLink(c, s);
+    if (s.volumeUntil > now) volume(c, s, s.linkLevel, s.linkMax);
+    return { lines: [], maxOffset: 0, total: 0, offset: 0 };
+  }
   header(c, s);
   let layout = { lines: [], maxOffset: 0, total: 0, offset: 0 };
   if (s.view === "main") {
@@ -228,7 +257,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     c.drawImage(i.line, 6, 110);
     c.globalAlpha = alpha;
     if (s.hasContext) text(c, T.new_conversation, 28, 102, 16, COLORS.white);
-    text(c, T.default_channel, 28, 124, 16, COLORS.white);
+    text(c, s.channelNames?.[s.channelIndex] ?? T.default_channel, L.CONTENT_X, 124, 16, COLORS.white, L.CONTENT_WIDTH);
     c.globalAlpha = 1;
     c.drawImage(
       ["listening", "recordCheck"].includes(s.phase) ? i.frame : i.ptt,
@@ -293,55 +322,223 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       );
     }
   } else if (s.view === "home") {
-    const selected = Math.min(s.selected, s.homeLabels.length - 1);
-    rect(c, 56, 31, 48, 48, C.HOME_ICON);
-    if (selected === 0)
-      [8, 16, 12, 4].forEach((h, i) =>
-        rect(c, 58 + i * 12, 39 + (16 - h), 8, h * 2, COLORS.lime),
-      );
-    else {
-      // ROM-owned icons are intentionally marked as placeholders.
-      round(c, 64, 39, 32, 32, 5, "#82948e", 2);
-      text(c, "?", 74, 63, 24, COLORS.white);
+    const labels = s.homeLabels;
+    const selected = Math.min(s.selected, labels.length - 1);
+    const visible = L.MENU_VISIBLE_ROWS;
+    const first = Math.max(
+      0,
+      Math.min(selected - visible + 1, labels.length - visible),
+    );
+    const activeRow = selected - first;
+    rect(
+      c,
+      L.LEFT,
+      L.MENU_TOP + activeRow * L.MENU_ROW_HEIGHT,
+      L.RIGHT - L.LEFT,
+      L.MENU_ROW_HEIGHT,
+      COLORS.orange,
+    );
+    labels.slice(first, first + visible).forEach((item, row) =>
+      text(
+        c,
+        item,
+        L.MENU_TEXT_X,
+        L.MENU_BASELINE + row * L.MENU_ROW_HEIGHT,
+        L.MENU_FONT,
+        row === activeRow ? COLORS.white : COLORS.ink,
+        L.RIGHT - L.MENU_TEXT_X - 4,
+      ),
+    );
+    if (labels.length > visible) {
+      const trackY = L.MENU_TOP;
+      const trackH = visible * L.MENU_ROW_HEIGHT;
+      const thumbH = Math.max(12, Math.round((trackH * visible) / labels.length));
+      const thumbY =
+        trackY +
+        Math.round(((trackH - thumbH) * first) / (labels.length - visible));
+      rect(c, 156, trackY, 2, trackH, "#223236");
+      rect(c, 156, thumbY, 2, thumbH, "#7b8d89");
     }
-    const label = ellipsis(s.homeLabels[selected], measureFor(c, 22), 150);
-    font(c, 22);
-    text(
-      c,
-      label,
-      (160 - c.measureText(label).width) / 2,
-      98,
-      22,
-      COLORS.white,
-    );
-    numbers(
-      c,
-      `${selected + 1}/${s.homeLabels.length}`,
-      132,
-      33,
-      2,
-      COLORS.lime,
-    );
     rect(
       c,
       0,
       L.STATUS_FOOTER_TOP,
       L.WIDTH,
       L.HEIGHT - L.STATUS_FOOTER_TOP,
-      C.VOLUME_BG,
+      C.WAIT_BG,
     );
-    text(c, T.text_009, 16, 122, 14, COLORS.lime);
+    rect(c, 0, L.STATUS_FOOTER_TOP, L.WIDTH, 1, C.WAIT_EDGE);
+    text(
+      c,
+      T.menu_enter,
+      L.STATUS_HINT_X,
+      L.STATUS_FOOTER_Y,
+      L.STATUS_HINT_FONT,
+      COLORS.ink,
+      L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X,
+    );
+    font(c, L.STATUS_HINT_FONT);
+    const switchTextX = L.RIGHT - c.measureText(T.switch_feature).width;
+    const arrowGap =
+      L.STATUS_HINT_TEXT_X - L.STATUS_HINT_X - L.STATUS_ARROW_WIDTH;
+    const switchArrowX = Math.round(
+      switchTextX - arrowGap - L.STATUS_ARROW_WIDTH,
+    );
+    for (const [x, y, w, h] of GRAPHICS.pageArrows)
+      rect(c, switchArrowX + x, L.STATUS_ARROW_Y + y, w, h, COLORS.orangeText);
+    text(
+      c,
+      T.switch_feature,
+      switchTextX,
+      L.STATUS_FOOTER_Y,
+      L.STATUS_HINT_FONT,
+      COLORS.ink,
+    );
   } else if (s.view === "ble") {
-    const details={starting:T.ble_test_only,ready:T.ble_scan,connected:T.ble_send_test,passed:T.ble_utf8_ok,failed:T.ble_retry,unavailable:T.ble_retry,expired:T.ble_retry,pair:T.wifi_confirm,approved:T.wifi_phone,connecting:T.wifi_wait,success:T.wifi_local,auth:T.wifi_failure_hint,timeout:T.wifi_failure_hint,cancelled:T.wifi_failure_hint,wifiFailed:T.wifi_failure_hint};
-    const states={pair:T.wifi_pair,approved:T.wifi_approved,connecting:T.wifi_connecting,success:T.wifi_success,auth:T.wifi_auth,timeout:T.wifi_timeout,cancelled:T.wifi_cancelled,wifiFailed:T.wifi_failed};
-    text(c,T.ble_title,6,38,15,C.PAGE_TITLE);
-    text(c,s.ip ? "IP "+s.ip : "Wi-Fi —",6,51,11,C.INK);
-    text(c,states[s.bleStatus] ? s.pairingCode : s.bleName,6,65,14,C.ACCENT);
-    const action=s.policyAction===2?T.manager_revoke:s.background?T.manager_disable:T.manager_enable;
-    text(c,s.policyAction?action:states[s.bleStatus] || T["ble_"+s.bleStatus],6,84,16,C.INK);
-    text(c,s.policyAction?T.manager_confirm:details[s.bleStatus],6,102,12,C.INK);
-    rect(c,0,108,160,20,C.VOLUME_BG);
-    text(c,s.policyAction?T.manager_cancel:s.hasBinding?T.manager_options:s.bleStatus === "expired" ? T.ble_retry : T.ble_exit,6,123,12,C.ACCENT);
+    const details = {
+      starting: T.ble_test_only,
+      ready: "使用小程序‘喂喂有回音’连接",
+      connected: T.ble_send_test,
+      passed: T.ble_utf8_ok,
+      failed: "请重试或检查蓝牙",
+      unavailable: "请检查设备蓝牙",
+      expired: "按 MENU 重新开启",
+      pair: "确认后授权后台管理",
+      approved: T.wifi_phone,
+      connecting: T.wifi_wait,
+      success: T.wifi_local,
+      auth: T.wifi_failure_hint,
+      timeout: T.wifi_failure_hint,
+      cancelled: T.wifi_failure_hint,
+      wifiFailed: T.wifi_failure_hint,
+    };
+    const states = {
+      pair: "核对确认码",
+      approved: T.wifi_approved,
+      connecting: T.wifi_connecting,
+      success: T.wifi_success,
+      auth: T.wifi_auth,
+      timeout: T.wifi_timeout,
+      cancelled: T.wifi_cancelled,
+      wifiFailed: T.wifi_failed,
+    };
+    const action =
+      s.policyAction === 2
+        ? T.manager_revoke
+        : s.background
+          ? T.manager_disable
+          : T.manager_enable;
+    const headline = s.policyAction
+      ? action
+      : states[s.bleStatus] || T["ble_" + s.bleStatus];
+    const isCode = !s.policyAction && s.bleStatus === "pair";
+    const isSuccess =
+      !s.policyAction &&
+      (s.bleStatus === "success" || s.bleStatus === "passed");
+    const isWifiFlow =
+      !s.policyAction &&
+      ["approved", "connecting", "auth", "timeout", "cancelled", "wifiFailed"].includes(
+        s.bleStatus,
+      );
+    const subline = isCode
+      ? s.pairingCode
+      : s.bleStatus === "success" && !s.policyAction
+        ? s.ip
+          ? "IP " + s.ip
+          : T.wifi_local
+        : isWifiFlow
+          ? details[s.bleStatus]
+          : s.bleName;
+    const subColor = isCode
+      ? COLORS.orangeText
+      : isSuccess
+        ? COLORS.teal
+        : isWifiFlow
+          ? COLORS.ink
+          : COLORS.orangeText;
+    const note = s.policyAction
+      ? "上下切换其他选项"
+      : isWifiFlow
+        ? s.bleName
+        : s.bleStatus === "success" && !s.ip
+          ? s.bleName
+          : details[s.bleStatus];
+
+    text(c, headline, L.STATUS_TITLE_X, 47, 18, C.PAGE_TITLE, 144);
+    text(c, subline, L.STATUS_TITLE_X, 71, isCode ? 15 : 14, subColor, 144);
+    let noteSize = 13;
+    font(c, noteSize);
+    while (noteSize > 10 && c.measureText(note).width > 146) {
+      noteSize -= 1;
+      font(c, noteSize);
+    }
+    text(c, note, L.STATUS_TITLE_X, 93, noteSize, "#9eb0aa", 146);
+
+    rect(
+      c,
+      0,
+      L.STATUS_FOOTER_TOP,
+      L.WIDTH,
+      L.HEIGHT - L.STATUS_FOOTER_TOP,
+      C.WAIT_BG,
+    );
+    rect(c, 0, L.STATUS_FOOTER_TOP, L.WIDTH, 1, C.WAIT_EDGE);
+
+    const retryable = ["expired", "failed", "unavailable"].includes(s.bleStatus);
+    if (s.policyAction) {
+      text(
+        c,
+        "MENU 确认",
+        L.STATUS_HINT_X,
+        L.STATUS_FOOTER_Y,
+        L.STATUS_HINT_FONT,
+        COLORS.ink,
+        L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X,
+      );
+    } else if (s.bleStatus === "pair") {
+      text(
+        c,
+        "MENU 授权",
+        L.STATUS_HINT_X,
+        L.STATUS_FOOTER_Y,
+        L.STATUS_HINT_FONT,
+        COLORS.ink,
+        L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X,
+      );
+    } else if (retryable) {
+      text(
+        c,
+        "MENU 重试",
+        L.STATUS_HINT_X,
+        L.STATUS_FOOTER_Y,
+        L.STATUS_HINT_FONT,
+        COLORS.ink,
+        L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X,
+      );
+    } else if (s.hasBinding) {
+      for (const [x, y, w, h] of GRAPHICS.pageArrows)
+        rect(c, L.STATUS_HINT_X + x, L.STATUS_ARROW_Y + y, w, h, COLORS.orangeText);
+      text(
+        c,
+        "选项",
+        L.STATUS_HINT_TEXT_X,
+        L.STATUS_FOOTER_Y,
+        L.STATUS_HINT_FONT,
+        COLORS.ink,
+        L.STATUS_HINT_EXIT_X - L.STATUS_HINT_TEXT_X,
+      );
+    }
+    const rightHint = s.policyAction ? "EXIT 取消" : T.status_exit_key;
+    font(c, L.STATUS_HINT_FONT);
+    text(
+      c,
+      rightHint,
+      L.RIGHT - c.measureText(rightHint).width,
+      L.STATUS_FOOTER_Y,
+      L.STATUS_HINT_FONT,
+      COLORS.ink,
+      L.WIDTH - L.STATUS_HINT_EXIT_X,
+    );
   } else if (s.view === "external") {
     text(c, "系统应用", 8, 49, 18, COLORS.white);
     text(c, "不模拟厂家系统界面", 8, 73, 14, COLORS.ink);
@@ -359,7 +556,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         L.MENU_TOP + (s.selected % L.MENU_VISIBLE_ROWS) * L.MENU_ROW_HEIGHT,
         L.RIGHT - L.LEFT,
         L.MENU_ROW_HEIGHT,
-        C.SELECTION,
+        COLORS.orange,
       );
       (s.owner === "launcher" ? DEVICE_MENU : MENU).slice(first, first + L.MENU_VISIBLE_ROWS).forEach((item, row) =>
         text(
@@ -368,7 +565,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
           L.MENU_TEXT_X,
           L.MENU_BASELINE + row * L.MENU_ROW_HEIGHT,
           L.MENU_FONT,
-          C.PAGE_TITLE,
+          row === s.selected % L.MENU_VISIBLE_ROWS ? COLORS.white : COLORS.ink,
           L.RIGHT - L.MENU_TEXT_X,
         ),
       );
@@ -399,19 +596,20 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         L.STATUS_TITLE_X,
         L.STATUS_ROW_Y + i * L.STATUS_ROW_HEIGHT,
         s.view === "checks" && i < 2 ? 16 : L.STATUS_ROW_FONT,
-        s.view === "checks" && i === 0 ? C.CHECKING : COLORS.ink,
+        s.view === "checks" && i === 0 ? COLORS.teal : COLORS.ink,
         144,
       ),
     );
-    if (counter) numbers(c, counter, 132, 34, 2, COLORS.lime);
+    if (counter) numbers(c, counter, 132, 34, 2, COLORS.orangeText);
     rect(
       c,
       0,
       L.STATUS_FOOTER_TOP,
       L.WIDTH,
       L.HEIGHT - L.STATUS_FOOTER_TOP,
-      C.VOLUME_BG,
+      C.WAIT_BG,
     );
+    rect(c, 0, L.STATUS_FOOTER_TOP, L.WIDTH, 1, C.WAIT_EDGE);
     if (s.view === "menu") {
       text(
         c,
@@ -419,19 +617,19 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
         L.STATUS_HINT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
-        COLORS.lime,
+        COLORS.ink,
         L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X,
       );
     } else if (s.view !== "checks") {
       for (const [x, y, w, h] of GRAPHICS.pageArrows)
-        rect(c, L.STATUS_HINT_X + x, L.STATUS_ARROW_Y + y, w, h, COLORS.lime);
+        rect(c, L.STATUS_HINT_X + x, L.STATUS_ARROW_Y + y, w, h, COLORS.orangeText);
       text(
         c,
         T.status_page_keys,
         L.STATUS_HINT_TEXT_X,
         L.STATUS_FOOTER_Y,
         L.STATUS_HINT_FONT,
-        COLORS.lime,
+        COLORS.ink,
         L.STATUS_HINT_EXIT_X - L.STATUS_HINT_TEXT_X,
       );
     }
@@ -442,7 +640,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       L.RIGHT - c.measureText(T.status_exit_key).width,
       L.STATUS_FOOTER_Y,
       L.STATUS_HINT_FONT,
-      COLORS.lime,
+      COLORS.ink,
       L.WIDTH - L.STATUS_HINT_EXIT_X,
     );
   }

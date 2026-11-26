@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 final class MxB5AudioRole {
+  // Android 5.1 HFP Client uses this hidden AudioManager stream for speaker gain.
+  static final int STREAM_BLUETOOTH_SCO = 6;
   private static final String HFP = "persist.service.bt.hfp.client";
 
   private static final String A2DP = "persist.service.bt.a2dp.sink";

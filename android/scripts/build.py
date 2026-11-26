@@ -66,7 +66,7 @@ def build(app):
         d8_classpath = ['--classpath', api_jar]
     run(JAVA / 'bin/javac', '-encoding', 'UTF-8', '-source', '8', '-target', '8',
         '-Xlint:-options', '-classpath', os.pathsep.join(map(str, classpath)),
-        '-d', OUT / 'classes', *sources)
+        '-sourcepath', ROOT / 'android/common/src', '-d', OUT / 'classes', *sources)
     run(JAVA / 'bin/jar', 'cf', OUT / 'classes.jar', '-C', OUT / 'classes', '.')
     run(BT / 'd8', '--min-api', '21', '--lib', ANDROID, *d8_classpath, '--output', OUT / 'dex', OUT / 'classes.jar', *libs)
     unsigned = OUT / 'unsigned.apk'

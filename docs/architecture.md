@@ -9,12 +9,26 @@
 根目录是多工程集合，使用 Makefile 调度构建，不是 npm workspace。完整目录树见 [README](../README.md)。两个核心 APK 分别位于 `android/launcher` 和 `android/talk`。
 
 - `android/` 内两个应用各有 Manifest、资源和 Java 源码；`common/` 由构建脚本分别编译进两个 APK。`scripts/` 直接调用 Android SDK、JDK 和 Python，不要求 Node 或 Gradle。
-- `android/audio-link/` 交付 NeoTalkie Audio Link（音频互联）。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，打开应用时先保存蓝牙开关及两个角色的原始属性值，再写入并读回 `persist.service.bt.a2dp.sink` 与 `persist.service.bt.hfp.client`，按需统一重启蓝牙。系统蓝牙负责配对、A2DP 媒体解码播放与 HFP 通话。主机根据音频用途选择协议，PTT 只控制 HFP 语音通路。音频互联 APK 的前台服务用厂商音频参数控制 HFP 麦克风通路，并通过厂商 HID Device 接口发送 Globe。应用在前台处理 PTT，提供普通 PTT 和 Fn 首尾点按两种模式。两种模式均使用 Mac 默认按键配置。首页显示手台蓝牙名，配对入口和模式选择纵向排列。配对通过系统临时可发现请求完成。界面可见期间绑定音频服务，失去焦点即释放 PTT；最后一个界面停止并解绑时，服务撤销音频和 HID、恢复进入时的两个角色属性与蓝牙开关状态，再结束自身。快速重开时以最近一次请求为准。见[真机验证](verification.md)。
+- `android/audio-link/` 交付 NeoTalkie Audio Link（音频互联）。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，打开应用时先保存蓝牙开关及两个角色的原始属性值，再写入并读回 `persist.service.bt.a2dp.sink` 与 `persist.service.bt.hfp.client`，按需统一重启蓝牙。系统蓝牙负责配对、A2DP 媒体解码播放与 HFP 通话。主机根据音频用途选择协议，PTT 只控制 HFP 语音通路。音频互联 APK 的前台服务用厂商音频参数控制 HFP 麦克风通路，并通过厂商 HID Device 接口发送 Globe。应用在前台处理 PTT，提供普通 PTT 和 Fn 首尾点按两种模式。两种模式均使用 Mac 默认按键配置。首页和模式页复用公共音量条，在前台接管旋钮并显示当前档位，SCO 接通时调节 HFP 扬声器音量，其余时间调节媒体音量。首页显示手台蓝牙名，配对入口和模式选择纵向排列。选择配对时先读取当前可发现状态。已获系统授予 WRITE_SECURE_SETTINGS 的 mx_b5 安装可直接开启 120 秒可发现窗口，其余安装由 Android 请求用户确认。首次配对码由系统处理。界面可见期间绑定音频服务，失去焦点即释放 PTT；最后一个界面停止并解绑时，服务撤销音频和 HID、恢复进入时的两个角色属性与蓝牙开关状态，再结束自身。快速重开时以最近一次请求为准。见[真机验证](verification.md)。
 - `tools/` 独立声明 Playwright、PNG 和图片比较依赖，包含离线模拟器与共享 UI 校验工具。它读取 `config/radio-ui/` 并生成 Android/模拟器适配代码，不打入设备运行包。
 
 桌面「系统设置」发送 `Settings.ACTION_SETTINGS`，打开系统设置首页；「手机配置」仍进入 NeoTalkie 的 BLE 页面。系统设置由设备 ROM 提供，本仓库不实现或修改它。
 
 CI 从工具锁文件安装工具，运行各工程离线测试和 UI 图册检查。私有配置、签名、依赖缓存与构建输出均留在忽略目录，不作为工程源码。
+
+## 手台设计工作台
+
+独立包 `@neotalkie/design-studio` 维护渲染源码、场景与 Android 页面的映射及冻结设计稿。固件拥有 `config/radio-ui/` 的正式场景输入和生成器。固件内的 `tools/simulator/` 固定工作台发行文件，`studio-release.json` 记录内容摘要。工作台由独立包的 `npm start` 启动。固件独立检出可出图并执行一致性校验。每个场景使用稳定 ID，对应原生应用包名、Activity 和输入参数。工作台按同一 ID 展示有来源及版本的 Android 截图。真机采集由操作者明确触发，实际图片保存在本机。见[UI 一致性](radio-ui-contract.md)。
+
+## 手台音量键与音量条
+
+Android 将音量键事件分发给当前持有焦点的窗口。每个自研 APK 都从 `android/common/` 复用音量条，在自己的前台窗口接入。同一 Activity 窗口内切换首页、菜单或模式页，只需接入一次。新 Activity 或拥有独立焦点窗口的应用内对话框，需要在该窗口分发按键并显示音量条。打开系统设置或系统配对弹窗后，音量反馈由 ROM 负责。
+
+- **按键**　在窗口的 `dispatchKeyEvent` 或等效入口把音量键的按下、重复和松开交给共享组件。`handleKey` 返回 `true` 时立即消费事件，避免同一格旋钮同时触发系统面板或重复调档。方向键继续用于页面导航。
+- **显示**　自绘页面在 160×128 逻辑画布上最后绘制 `VolumeStrip`。标准 Android 控件页面把 `VolumeStripOverlay` 放在内容上方。旋钮方向适配、实际档位读数和自动收起时间都由共享组件处理。Activity 暂停或对话框关闭时调用 `hide()`。
+- **音频通路**　页面按当前播放通路选择音量流。桌面、对讲和 A2DP 媒体播放调节媒体音量，音频互联在 HFP 的 SCO 通路接通时调节通话扬声器音量。音量条读取被调节音量流的当前档位和最大档位。
+
+自绘页面可参考[桌面首页](../android/launcher/src/com/neotalkie/device/HomeActivity.java)，标准控件页面可参考[音频互联](../android/audio-link/src/com/neotalkie/audiolink/AudioLinkActivity.java)。
 
 ## 跨应用 PTT
 
@@ -40,4 +54,4 @@ PTT provider 和桌面内部页面由 `com.neotalkie.launcher.permission.CONTROL
 
 ### 当前固件行为
 
-0.2.3 将 BLE 配网页的临时连接和 ManagementService 的后台连接分开。在手台确认绑定后，已绑定手机通过 Wi-Fi 双向认证，在配置页关闭后仍可按需访问。两类端口均只绑定 Wi-Fi 地址。管理接口使用每次连接独立的 AES-GCM 密钥，配置版本防止覆盖其他更新。对讲 APK 的 CompanionConfig 保存模型、密钥、频道和记忆期限，切换活动频道后生成新上下文。RecentTurns 在应用私有 SQLite 中保留最近 100 条文字问答、已返回的 token 用量与耗时，通过分页按需读取。试听由对讲 APK 的 TTS 播放。
+0.2.3 将 BLE 配网页的临时连接和 ManagementService 的后台连接分开。在手台确认绑定后，已绑定手机通过 Wi-Fi 双向认证，在配置页关闭后仍可按需访问。两类端口均只绑定 Wi-Fi 地址。管理接口使用每次连接独立的 AES-GCM 密钥，配置版本防止覆盖其他更新。对讲 APK 的 CompanionConfig 保存模型、密钥、频道和记忆期限，对讲首页下侧键显示活动频道名称，并按配置顺序循环选择。mx_b5 的实体下侧键按下时报告 F8，松开后 ROM 还会补发扫描码为 0 的向右键。对讲首页只在 F8 首次按下时切换频道。切换活动频道后生成新上下文。对讲首页的 EXIT 先收起本轮内容并返回讲话提示，保留已有上下文。只有已显示待机提示（含未配置提示）时才退出应用。每个频道使用 replySeconds 设置 30、60 或 120 秒的播报上限，流式合成按 24 kHz 单声道 16 位 PCM 样本数封顶。每轮回答末尾的 `<topic>` 概括用户当轮发言，最多六个汉字。手台在送入 TTS 前拆出主题，将其与本轮问答一同保存，并在上下文有效时用最近一轮主题替换“继续追问”。RecentTurns 在应用私有 SQLite 中保留最近 100 条文字问答、已返回的 token 用量与耗时，通过分页按需读取。试听由对讲 APK 的 TTS 播放。

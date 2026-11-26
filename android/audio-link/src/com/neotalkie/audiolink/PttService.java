@@ -151,6 +151,10 @@ public final class PttService extends Service implements BluetoothProfile.Servic
     getSharedPreferences("ptt", MODE_PRIVATE).edit().putString("mode", target.name()).apply();
     notifyUi();
   }
+  int playbackStream() {
+    return sco ? MxB5AudioRole.STREAM_BLUETOOTH_SCO : AudioManager.STREAM_MUSIC;
+  }
+
   void press() { if (ready) sequence.press(); }
   void release() { sequence.release(); }
   private void notifyUi() { if (changed != null) changed.run(); }

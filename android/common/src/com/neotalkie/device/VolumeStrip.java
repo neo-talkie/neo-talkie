@@ -11,8 +11,7 @@ import android.view.KeyEvent;
 import android.view.View;
 
 /**
- * In-view volume feedback; uses the device's exact media levels; SpeechEngine applies playback
- * gain.
+ * In-view volume feedback; uses the device's exact volume steps for the selected playback stream.
  */
 final class VolumeStrip {
   private final AudioManager audio;
@@ -37,6 +36,10 @@ final class VolumeStrip {
   }
 
   boolean handleKey(KeyEvent event, boolean includeDpad) {
+    return handleKey(event, includeDpad, AudioManager.STREAM_MUSIC);
+  }
+
+  boolean handleKey(KeyEvent event, boolean includeDpad, int stream) {
     int key = event.getKeyCode();
     boolean up =
         key == KeyEvent.KEYCODE_VOLUME_UP || (includeDpad && key == KeyEvent.KEYCODE_DPAD_UP);
@@ -49,11 +52,11 @@ final class VolumeStrip {
       boolean rotary = device != null && "walktalk_encode_volum".equals(device.getName());
       boolean raise = rotary ? down : up;
       audio.adjustStreamVolume(
-          AudioManager.STREAM_MUSIC,
+          stream,
           raise ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER,
           0);
-      current = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
-      maximum = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+      current = audio.getStreamVolume(stream);
+      maximum = audio.getStreamMaxVolume(stream);
       if (cachedMaximum != maximum) {
         java.util.Arrays.fill(valueCache, null);
         cachedMaximum = maximum;
@@ -69,6 +72,10 @@ final class VolumeStrip {
       view.invalidate();
     }
     return true;
+  }
+
+  boolean isVisible() {
+    return visible;
   }
 
   void hide() {

@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
 export REASON SERIAL BASE
-.PHONY: help setup android-setup browser-setup build android-build test android-test ui-generate ui-check ui-visual ui-accept check-public simulator install
+.PHONY: help setup android-setup browser-setup build android-build test android-test ui-generate ui-check ui-visual ui-accept check-public install
 help:
-	@echo 'NeoTalkie: make setup | build | test | simulator | install SERIAL=...'
+	@echo 'NeoTalkie: make setup | build | test | install SERIAL=...'
 	@echo 'UI: make ui-generate | ui-visual [BASE=HEAD] | ui-accept REASON="..."'
 setup:
 	npm --prefix tools ci --ignore-scripts
@@ -27,8 +27,6 @@ ui-accept:
 	npm --prefix tools run ui:accept -- --reason "$$REASON"
 check-public:
 	python3 tools/scripts/check-public.py
-simulator:
-	npm --prefix tools run simulator
 install:
 	@test -n "$$SERIAL" || (echo 'SERIAL is required'; exit 1)
 	python3 android/scripts/device.py --serial "$$SERIAL" install

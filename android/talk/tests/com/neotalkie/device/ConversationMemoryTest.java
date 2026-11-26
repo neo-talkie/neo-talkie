@@ -69,11 +69,12 @@ public final class ConversationMemoryTest {
       memory.clear();
       ok(memory.remainingMillis(start + 2) == 0);
       ok(new ConversationMemory(file).snapshot(start + 2).isEmpty());
-      memory.rememberIfCurrent(oldGeneration, "late user", "late reply", start + 3, false);
-      memory.rememberIfCurrent(oldGeneration, "late interrupted", "reply", start + 4, true);
+      memory.rememberIfCurrent(oldGeneration, "late user", "late reply", "旧主题", start + 3, false);
+      memory.rememberIfCurrent(oldGeneration, "late interrupted", "reply", "旧主题", start + 4, true);
       ok(memory.snapshot(start + 5).isEmpty());
-      memory.rememberIfCurrent(memory.generation(), "new user", "new reply", start + 6, false);
+      memory.rememberIfCurrent(memory.generation(), "new user", "new reply", "新主题", start + 6, false);
       ok(memory.snapshot(start + 7).size() == 1);
+      ok(new ConversationMemory(file).topic().equals("新主题"));
       ok(memory.remainingMillis(start + 300006) == 0);
       ok(new ConversationMemory(file).snapshot(start + 300006).isEmpty());
 

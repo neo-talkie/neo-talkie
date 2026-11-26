@@ -19,7 +19,7 @@ final class RecentTurns extends SQLiteOpenHelper {
     if(turn.userText.isEmpty() && turn.replyText.isEmpty())return;
     JSONObject row=new JSONObject().put("time",turn.wallTime).put("channelId",cfg.channelId)
         .put("channelName",cfg.channelName).put("model",cfg.model).put("question",clip(turn.userText))
-        .put("answer",clip(turn.replyText)).put("usage",turn.usage).put("speaker",cfg.speaker)
+        .put("topic",turn.topic).put("answer",clip(turn.replyText)).put("usage",turn.usage).put("speaker",cfg.speaker)
         .put("elapsedMs",android.os.SystemClock.elapsedRealtime()-turn.started).put("searchCalls",turn.searchCalls);
     JSONObject stats=turn.metrics(),times=new JSONObject();
     for(String k:new String[]{"asrTailMs","llmFirstTextMs","textToAudioMs","releaseToFirstWriteMs"})

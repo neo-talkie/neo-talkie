@@ -16,7 +16,7 @@ final class SpeechEngine {
 
     void level(Turn t, int level);
 
-    void done(Turn t, byte[] reply);
+    void done(Turn t);
 
     void contextChanged();
   }
@@ -49,6 +49,8 @@ final class SpeechEngine {
     List<String[]> history = Collections.emptyList();
     volatile long inputBytes, audioBytes, recordEnd, firstAudio;
     volatile boolean limited;
+    volatile String topic = "";
+    long timeoutMs = 120000;
     volatile long bytesBeforeRelease, maxUploadQueue, cpuToFirstWrite;
     volatile int maxInputQueue, searchCalls;
     volatile int reasoningTokens = -1;
@@ -155,7 +157,7 @@ final class SpeechEngine {
 
     void check() throws IOException {
       if (cancelled || Thread.currentThread().isInterrupted()) throw new IOException(UiContract.T_TEXT_033);
-      if (SystemClock.elapsedRealtime() - started > 120000) throw new IOException("本轮超时");
+      if (SystemClock.elapsedRealtime() - started > timeoutMs) throw new IOException("本轮超时");
     }
   }
 
@@ -188,11 +190,14 @@ final class SpeechEngine {
     return memory.remainingMillis(now);
   }
 
+  String contextTopic() { return memory.topic(); }
+
   void clearConversation() throws IOException {
     memory.clear();
   }
 
   void start(final Turn t, final File inputFile, final boolean localOnly) {
+    if (config != null) t.timeoutMs = (90L + config.replySeconds) * 1000;
     t.memoryGeneration = memory.generation();
     t.inputMode = inputFile == null ? "microphone" : "pacedPcm";
     t.liveSpeech = !localOnly;
@@ -224,20 +229,20 @@ final class SpeechEngine {
                 String text = recognize(t);
                 if (t.shortInput) {
                   listener.status(t, UiContract.eventLabel("shortInput"), UiContract.T_REPEAT_SPEECH);
-                  listener.done(t, null);
+                  listener.done(t);
                   return;
                 }
                 if (text.isEmpty()) {
                   listener.status(t, UiContract.eventLabel("emptyInput"), UiContract.T_REPEAT_SPEECH);
                   playPcm(t, doubleTone());
-                  listener.done(t, null);
+                  listener.done(t);
                   return;
                 }
                 t.partialText = text;
                 t.userText = text;
                 listener.status(t, UiContract.eventLabel("recognitionDone"), UiContract.T_PLEASE_WAIT);
-                byte[] reply = generate(t, text);
-                completed = !t.limited;
+                synthesize(t, text, false);
+                completed = true;
                 Log.i(
                     "NeoTalkie",
                     "turn_complete input_bytes="
@@ -251,19 +256,19 @@ final class SpeechEngine {
                         + " limited="
                         + t.limited);
                 listener.status(t, UiContract.eventLabel("playbackDone"), t.replyText);
-                listener.done(t, reply);
+                listener.done(t);
               }
             } catch (Exception e) {
               if (!t.cancelled) {
                 if (t.shortInput) {
                   listener.status(t, UiContract.eventLabel("shortInput"), UiContract.T_REPEAT_SPEECH);
-                  listener.done(t, null);
+                  listener.done(t);
                   return;
                 }
                 Log.w("NeoTalkie", "turn_failed " + e.getClass().getSimpleName());
                 // Provider response bodies and credential-bearing exceptions never reach logs/UI.
                 listener.status(t, UiContract.eventLabel("failure"), safeError(e));
-                listener.done(t, null);
+                listener.done(t);
               }
             } finally {
               t.stopInput();
@@ -285,14 +290,14 @@ final class SpeechEngine {
                   memory.rememberIfCurrent(
                       t.memoryGeneration,
                       t.interruptedUser,
-                      t.interruptedReply,
+                      t.interruptedReply, t.topic,
                       System.currentTimeMillis(),
                       true);
                 } else if (completed) {
                   memory.rememberIfCurrent(
                       t.memoryGeneration,
                       t.userText,
-                      t.replyText,
+                      t.limited ? t.replyText + "（播报到达频道时长上限）" : t.replyText, t.topic,
                       System.currentTimeMillis(),
                       false);
                 }
@@ -473,7 +478,7 @@ final class SpeechEngine {
             .header("X-Api-Request-Id", UUID.randomUUID().toString())
             .header("X-Api-Sequence", "-1")
             .build();
-    t.asr = new VoiceSocket(client, req);
+    t.asr = new VoiceSocket(client, req, false);
     t.mark("asrConnectStarted");
     t.check();
     if (t.shortInput) {
@@ -545,10 +550,6 @@ final class SpeechEngine {
       throw new IOException(stage + " 服务错误 " + (f.error != 0 ? f.error : f.event));
   }
 
-  private byte[] generate(final Turn t, final String text) throws Exception {
-    return synthesize(t,text,false);
-  }
-
   static void audition(android.content.Context c,String speaker)throws Exception{
     Config cfg=new Config(c,speaker);
     SpeechEngine engine=new SpeechEngine(cfg,null,null,(AudioManager)c.getSystemService(android.content.Context.AUDIO_SERVICE));
@@ -557,7 +558,7 @@ final class SpeechEngine {
     finally{t.cancel();releaseTrack(t);engine.close();}
   }
 
-  private byte[] synthesize(final Turn t, final String text,final boolean preview) throws Exception {
+  private void synthesize(final Turn t, final String text,final boolean preview) throws Exception {
     final ArrayBlockingQueue<String> deltas = new ArrayBlockingQueue<>(256);
     final String end = new String("END");
     Future<?> llm =
@@ -580,7 +581,7 @@ final class SpeechEngine {
                   .header("X-Api-Key", config.voiceKey)
                   .header("X-Api-Resource-Id", "seed-tts-2.0")
                   .header("X-Api-Connect-Id", UUID.randomUUID().toString())
-                  .build());
+                  .build(), true);
       t.check();
       t.tts.send(Protocol.tts(1, "", "{}"));
       expect(t, 50, null);
@@ -628,7 +629,7 @@ final class SpeechEngine {
                   return null;
                 }
               });
-      ByteArrayOutputStream pcm = new ByteArrayOutputStream(48000);
+      final int maxAudioBytes = config.replySeconds * 24000 * 2;
       while (true) {
         t.check();
         if (sender.isDone()) sender.get();
@@ -644,23 +645,22 @@ final class SpeechEngine {
             t.maxAudioArrivalGap = Math.max(t.maxAudioArrivalGap, arrived - t.lastAudioArrival);
           t.lastAudioArrival = arrived;
           if ((f.body.length & 1) != 0) throw new IOException("TTS 音频格式错误");
-          int n = Math.min(f.body.length, 1440000 - pcm.size());
+          int n = Math.min(f.body.length, maxAudioBytes - (int)t.audioBytes);
           if (t.firstAudio == 0) {
             t.firstAudio = SystemClock.elapsedRealtime();
             t.mark("ttsFirstAudio");
             if(!preview)listener.status(t, UiContract.eventLabel("reply"), t.replyText);
           }
-          pcm.write(f.body, 0, n);
           writeAudio(t, f.body, n);
           t.audioBytes += n;
-          if (pcm.size() >= 1440000) {
+          if (t.audioBytes >= maxAudioBytes) {
             t.limited = true;
             t.tts.send(Protocol.tts(101, sid, "{}"));
             break;
           }
         } else if (f.event == 152) break;
       }
-      if (pcm.size() == 0) throw new IOException("没有收到回复音频");
+      if (t.audioBytes == 0) throw new IOException("没有收到回复音频");
       if (!t.limited) {
         llm.get(5, TimeUnit.SECONDS);
         sender.get(5, TimeUnit.SECONDS);
@@ -668,7 +668,6 @@ final class SpeechEngine {
       drain(t);
       t.playbackFinished = true;
       t.mark("playbackDone");
-      return pcm.toByteArray();
     } finally {
       llm.cancel(true);
       if (sender != null) sender.cancel(true);
@@ -691,6 +690,7 @@ final class SpeechEngine {
   }
 
   private void ark(Turn t, String text, BlockingQueue<String> deltas) throws Exception {
+    ReplyTextStream reply = new ReplyTextStream(config.replySeconds * 4);
     JSONArray input = new JSONArray();
     for (String[] pair : t.history) {
       input.put(new JSONObject().put("role", "user").put("content", pair[0]));
@@ -704,7 +704,7 @@ final class SpeechEngine {
             .put("input", input)
             .put("stream", true)
             .put("store", false)
-            .put("max_output_tokens", 180)
+            .put("max_output_tokens", config.replySeconds * 6 + 48)
             .put("thinking", new JSONObject().put("type", "disabled"));
     if (config.webSearch)
       req.put(
@@ -750,17 +750,13 @@ final class SpeechEngine {
           listener.status(t, UiContract.eventLabel("recognitionDone"), UiContract.T_PLEASE_WAIT);
         }
         if (kind.equals("response.output_text.delta")) {
-          String delta = e.optString("delta");
-          int remaining = 120 - t.replyText.length();
-          if (delta.length() > remaining) delta = delta.substring(0, remaining);
+          String delta = reply.accept(e.optString("delta"));
+          t.topic = reply.topic();
           if (!delta.isEmpty()) {
             boolean first = t.mark("llmFirstText");
             t.replyText += delta;
             if (first) listener.status(t, UiContract.eventLabel("synthesis"), t.replyText);
             put(t, deltas, delta);
-          }
-          if (t.replyText.length() >= 120) {
-            return;
           }
         } else if (kind.equals("response.completed") || kind.equals("response.incomplete")) {
           t.mark("llmDone");
@@ -886,7 +882,7 @@ final class SpeechEngine {
     }
     if (t.inputFailure != null) throw t.inputFailure;
     listener.status(t, UiContract.T_PHASE_CHECKDONE, t.captureLimited ? UiContract.T_CAPTURE_AUTO_STOP : UiContract.T_CAPTURE_STOPPED);
-    listener.done(t, null);
+    listener.done(t);
   }
 
   private void localLoopback(Turn t) throws Exception {
@@ -925,7 +921,7 @@ final class SpeechEngine {
     listener.status(t, UiContract.T_PHASE_PLAYBACKCHECK, UiContract.T_PLAYBACK_ACTIVE);
     playPcm(t, out);
     listener.status(t, UiContract.T_PHASE_CHECKDONE, UiContract.T_PEAK_PREFIX + peak);
-    listener.done(t, null);
+    listener.done(t);
   }
 
   private static byte[] doubleTone() {

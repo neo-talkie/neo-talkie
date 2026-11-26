@@ -11,6 +11,7 @@ final class ConversationMemory {
   private final long idleMs;
   private final ArrayList<String[]> turns = new ArrayList<>();
   private long touched, generation;
+  private String topic = "";
 
   ConversationMemory(File file) {
     this(file,IDLE_MS);
@@ -20,7 +21,8 @@ final class ConversationMemory {
     this.file = file;
     if (!file.isFile()) return;
     try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-      if (file.length() > 200000 || in.readInt() != 1) throw new IOException("history format");
+      int version = in.readInt();
+      if (file.length() > 200000 || (version != 1 && version != 2)) throw new IOException("history format");
       touched = in.readLong();
       int count = in.readInt(), chars = 0;
       if (count < 0 || count > MAX_TURNS) throw new IOException("history count");
@@ -34,8 +36,10 @@ final class ConversationMemory {
             || chars > MAX_CHARS) throw new IOException("history size");
         turns.add(new String[] {user, reply});
       }
+      if (version == 2) topic = in.readUTF();
       if (in.read() != -1) throw new IOException("history trailing data");
     } catch (IOException e) {
+      topic = "";
       turns.clear();
       file.delete();
     }
@@ -43,10 +47,13 @@ final class ConversationMemory {
 
   private void expire(long now) {
     if (now < touched || now - touched >= idleMs) {
+      topic = "";
       turns.clear();
       file.delete();
     }
   }
+
+  synchronized String topic() { return topic; }
 
   synchronized long generation() {
     return generation;
@@ -59,14 +66,16 @@ final class ConversationMemory {
 
   synchronized void clear() throws IOException {
     generation++;
+    topic = "";
     turns.clear();
     touched = 0;
     save();
   }
 
   synchronized void rememberIfCurrent(
-      long expected, String user, String reply, long now, boolean interrupted) throws IOException {
-    if (expected != generation) return;
+      long expected, String user, String reply, String newTopic, long now, boolean interrupted) throws IOException {
+    if (expected != generation || user.isEmpty() || idleMs == 0) return;
+    topic = newTopic;
     if (interrupted) rememberInterrupted(user, reply, now);
     else remember(user, reply, now);
   }
@@ -107,13 +116,14 @@ final class ConversationMemory {
     File temp = new File(file.getPath() + ".tmp");
     try (FileOutputStream stream = new FileOutputStream(temp);
         DataOutputStream out = new DataOutputStream(stream)) {
-      out.writeInt(1);
+      out.writeInt(2);
       out.writeLong(touched);
       out.writeInt(turns.size());
       for (String[] turn : turns) {
         out.writeUTF(turn[0]);
         out.writeUTF(turn[1]);
       }
+      out.writeUTF(topic);
       out.flush();
       stream.getFD().sync();
     }

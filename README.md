@@ -38,7 +38,7 @@ Neo-Talkie/
 │   ├── common/             两个 APK 共用的 Java 源码
 │   └── scripts/            构建、测试与 ADB 工具
 ├── tools/                  开发工具，独立 package.json 和锁文件
-│   ├── simulator/          离线手台界面模拟器
+│   ├── simulator/          手台设计工作台固定发行版与离线模拟器
 │   ├── ui/                 共享 UI 生成、对照与截图检查
 │   └── scripts/            开源内容检查
 ├── config/                 共享 UI 契约与公开配置示例

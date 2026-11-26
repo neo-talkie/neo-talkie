@@ -136,10 +136,33 @@ export function createState(input = {}) {
     idleSince: number(input.idleSince, 0, Number.MAX_SAFE_INTEGER, 0),
     keyCount: number(input.keyCount, 0, 1000000, 0),
   };
+  if (typeof input.topic === "string" && /^\p{Script=Han}{1,6}$/u.test(input.topic)) state.topic = input.topic;
+  if (Array.isArray(input.channelNames)) {
+    const names = input.channelNames.filter(name => typeof name === "string" && name.trim())
+      .slice(0, 3).map(name => name.trim().slice(0, 24));
+    if (names.length) {
+      state.channelNames = names;
+      state.channelIndex = Math.floor(number(input.channelIndex, 0, names.length - 1, 0));
+    }
+  }
+  if (input.channelChangedDuringTurn === true) state.channelChangedDuringTurn = true;
   if (state.view === "home" || state.view === "external")
     state.selected = Math.min(state.selected, state.homeLabels.length - 1);
   if (state.view === "menu")
     state.selected = Math.min(state.selected, MENU.length - 1);
+  if (view === "audioLink") {
+    state.owner = "audio-link";
+    state.linkDeviceName = String(input.linkDeviceName || "NeoTalkie-1234").slice(0, 80);
+    state.linkPage = input.linkPage === "modes" ? "modes" : "home";
+    state.linkFn = input.linkFn === true;
+    state.linkFailed = input.linkFailed === true;
+    state.linkSco = input.linkSco === true;
+    state.linkStatus = String(input.linkStatus || "等待 PTT").slice(0, 80);
+    state.linkToast = String(input.linkToast || "").slice(0, 80);
+    state.linkMax = number(input.linkMax, 1, 100, 5);
+    state.linkLevel = number(input.linkLevel ?? state.volume, 0, state.linkMax, 0);
+    state.selected = Math.min(state.selected, 1);
+  }
   const pages = pagesFor(state);
   if (pages.length) state.page = Math.min(state.page, pages.length - 1);
   return state;
@@ -155,7 +178,7 @@ export function title(s) {
     s.title ||
     (s.phase === "idle"
       ? s.hasContext
-        ? T.followup
+        ? s.topic || T.followup
         : T.phase_idle
       : PHASES[s.phase]) ||
     T.phase_idle
@@ -254,6 +277,7 @@ function ready(s) {
     stageAt: 0,
     processingElapsed: 0,
     held: false,
+    channelChangedDuringTurn: false,
   };
 }
 export function act(state, action, now = 0, maxOffset = 0) {
@@ -281,13 +305,12 @@ export function act(state, action, now = 0, maxOffset = 0) {
   if (action === "back" && s.view === "home") return s;
   if (action === "back" && s.view === "ble" && s.policyAction) return {...s,policyAction:0};
   if (action === "back") {
-    if (s.view === "main")
-      return {
-        ...ready(s),
-        view: ["idle", "finished", "error", "nospeech"].includes(s.phase)
-          ? "home"
-          : "main",
-      };
+    if (s.view === "main") {
+      const homePrompt = s.phase === "idle" && !s.title && s.text === T.hold_ptt;
+      const setupPrompt = s.phase === "unconfigured";
+      const exit = s.volumeUntil <= now && (homePrompt || setupPrompt);
+      return { ...(setupPrompt ? s : ready(s)), view: exit ? "home" : "main", volumeUntil: 0 };
+    }
     return {
       ...ready(s),
       view:
@@ -300,10 +323,17 @@ export function act(state, action, now = 0, maxOffset = 0) {
     !["confirm", "ptt-up"].includes(action)
   )
     return s;
-  if (action === "more") return s; // Default channel is currently a placeholder.
+  if (action === "more") {
+    if (s.view !== "main" || !(s.channelNames?.length > 1)) return s;
+    const next = (s.channelIndex + 1) % s.channelNames.length;
+    const inTurn = ["listening", "recognizing", "thinking", "searching", "synthesizing", "speaking", "recordCheck"].includes(s.phase);
+    if (inTurn) s.channelChangedDuringTurn = true;
+    else if (s.phase !== "unconfigured") s = ready(s);
+    return { ...s, channelIndex: next, topic: "", hasContext: false, contextUntil: 0, volumeUntil: 0 };
+  }
   if (action === "channel")
     return s.view === "main" && s.hasContext
-      ? { ...ready(s), hasContext: false, contextUntil: 0, volumeUntil: 0 }
+      ? { ...ready(s), topic: "", hasContext: false, contextUntil: 0, volumeUntil: 0 }
       : s;
   if (action === "volume-up" || action === "volume-down")
     return {
@@ -482,7 +512,8 @@ export function tick(state, now) {
       s.stageAt = now + 5500;
     } else if (s.phase === "speaking") {
       s.phase = phaseForEvent("playbackDone");
-      s.hasContext = true;
+      s.hasContext = !s.channelChangedDuringTurn;
+      if (s.hasContext && s.text === ANSWER) s.topic = "安康鱼习性";
       s.contextUntil = now + MS.CONTEXT_MS;
       if (!s.reviewUntil) s.resetAt = now + MS.REPLY_HOLD_MS;
     }

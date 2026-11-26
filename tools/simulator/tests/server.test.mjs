@@ -24,7 +24,8 @@ test("static server stays local, serves bundled fonts, and rejects writes/traver
     index.headers.get("content-security-policy"),
     /connect-src 'self'/,
   );
-  assert.match(await index.text(), /手台界面实验室/);
+  assert.match(await index.text(), /手台设计工作台/);
+  assert.match(await (await fetch(origin + "/lab")).text(), /手台界面实验室/);
   const font = await fetch(origin + "/assets/DroidSansFallback.woff2");
   assert.equal(font.status, 200);
   assert.equal(font.headers.get("content-type"), "font/woff2");

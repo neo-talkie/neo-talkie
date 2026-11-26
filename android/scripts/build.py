@@ -39,7 +39,7 @@ def build(app):
     for name in ['classes', 'generated', 'dex', 'assets']:
         (OUT / name).mkdir(parents=True)
     if app == 'talk': shutil.copyfile(ROOT / 'config/prompts/default.txt', OUT / 'assets/prompt.txt')
-    if app == 'hfp-mic':
+    if app == 'audio-link':
         shutil.copyfile(ROOT / 'LICENSE', OUT / 'assets/LICENSE-APACHE-2.0.txt')
     else:
         for name in ['THIRD_PARTY.md', 'LICENSE-APACHE-2.0.txt']:
@@ -49,11 +49,11 @@ def build(app):
         '--manifest', APP / 'AndroidManifest.xml', '--java', OUT / 'generated',
         '-A', OUT / 'assets', OUT / 'resources.zip')
     sources = sorted((APP / 'src').rglob('*.java')) + sorted((OUT / 'generated').rglob('*.java'))
-    if app != 'hfp-mic':
+    if app != 'audio-link':
         sources += sorted((ROOT / 'android/common/src').rglob('*.java'))
     classpath = [ANDROID, *libs]
     d8_classpath = []
-    if app == 'hfp-mic':
+    if app == 'audio-link':
         # Signatures only. Android supplies the actual classes on the radio.
         api = OUT / 'mx-b5-api'
         api.mkdir()
@@ -91,6 +91,6 @@ def build(app):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('app', choices=['talk', 'launcher', 'hfp-mic', 'all'], nargs='?', default='all')
+    parser.add_argument('app', choices=['talk', 'launcher', 'audio-link', 'all'], nargs='?', default='all')
     args = parser.parse_args()
-    for app in (['launcher', 'talk', 'hfp-mic'] if args.app == 'all' else [args.app]): build(app)
+    for app in (['launcher', 'talk', 'audio-link'] if args.app == 'all' else [args.app]): build(app)

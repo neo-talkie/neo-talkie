@@ -1,19 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.neotalkie.hfpmic" android:versionCode="3" android:versionName="0.3">
+    package="com.neotalkie.hfpmic" android:versionCode="4" android:versionName="0.4">
     <uses-sdk android:minSdkVersion="22" android:targetSdkVersion="22" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <application android:label="蓝牙麦克风" android:icon="@drawable/ic_mic"
+    <application android:label="音频互联" android:icon="@drawable/ic_mic"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" android:allowBackup="false">
-        <service android:name=".PttService" android:exported="false" />
-        <activity android:name=".MicActivity" android:exported="true" android:screenOrientation="landscape">
+        <service android:name="com.neotalkie.audiolink.PttService" android:exported="false" />
+        <activity android:name="com.neotalkie.audiolink.AudioLinkActivity" android:exported="true" android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Preserve explicit launch shortcuts saved before the Audio Link rename. -->
+        <activity-alias android:name=".MicActivity" android:exported="true"
+            android:targetActivity="com.neotalkie.audiolink.AudioLinkActivity" />
     </application>
 </manifest>

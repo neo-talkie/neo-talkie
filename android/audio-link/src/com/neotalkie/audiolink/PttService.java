@@ -1,4 +1,4 @@
-package com.neotalkie.hfpmic;
+package com.neotalkie.audiolink;
 
 import android.app.*;
 import android.bluetooth.*;
@@ -37,8 +37,8 @@ public final class PttService extends Service implements BluetoothProfile.Servic
     filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
     registerReceiver(events, filter);
     startForeground(1, new Notification.Builder(this).setSmallIcon(android.R.drawable.stat_sys_speakerphone)
-        .setContentTitle("蓝牙麦克风").setContentText("打开手台应用，按住 PTT 讲话")
-        .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MicActivity.class), 0)).build());
+        .setContentTitle(getApplicationInfo().loadLabel(getPackageManager())).setContentText("打开手台应用，按住 PTT 讲话")
+        .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, AudioLinkActivity.class), 0)).build());
     if (adapter.isEnabled()) bindProfiles();
   }
   private void bindProfiles() {

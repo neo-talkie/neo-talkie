@@ -1,4 +1,4 @@
-package com.neotalkie.hfpmic;
+package com.neotalkie.audiolink;
 
 import java.util.ArrayList;
 import java.util.Arrays;

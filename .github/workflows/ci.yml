@@ -28,4 +28,5 @@ jobs:
           path: |
             android/launcher/build/neotalkie-launcher.apk
             android/talk/build/neotalkie-talk.apk
+            android/audio-link/build/neotalkie-audio-link.apk
             data/ui-regression/latest/

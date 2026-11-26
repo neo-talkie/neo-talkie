@@ -1,4 +1,4 @@
-package com.neotalkie.hfpmic;
+package com.neotalkie.audiolink;
 
 /** One physical press can arrive as both a key and a vendor broadcast. */
 final class PttSequence {

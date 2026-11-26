@@ -9,7 +9,7 @@
 根目录是多工程集合，使用 Makefile 调度构建，不是 npm workspace。完整目录树见 [README](../README.md)。两个核心 APK 分别位于 `android/launcher` 和 `android/talk`。
 
 - `android/` 内两个应用各有 Manifest、资源和 Java 源码；`common/` 由构建脚本分别编译进两个 APK。`scripts/` 直接调用 Android SDK、JDK 和 Python，不要求 Node 或 Gradle。
-- `android/hfp-mic/` 是可选的独立 APK。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，用户打开它后，应用进程写入并读回厂商 HFP 角色属性，按需重启蓝牙。系统蓝牙负责配对与 HFP 传音。麦克风 APK 的前台服务用厂商音频参数控制 HFP 麦克风通路，并通过厂商 HID Device 接口发送 Globe。应用在前台处理 PTT，提供普通 PTT 和 Fn 首尾点按两种模式。两种模式均使用 Mac 默认按键配置。「恢复原模式」切回耳机网关。见[真机验证](verification.md)。
+- `android/audio-link/` 交付 NeoTalkie Audio Link（音频互联）。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，用户打开它后，应用进程写入并读回厂商 HFP 角色属性，按需重启蓝牙。系统蓝牙负责配对与 HFP 传音。音频互联 APK 的前台服务用厂商音频参数控制 HFP 麦克风通路，并通过厂商 HID Device 接口发送 Globe。应用在前台处理 PTT，提供普通 PTT 和 Fn 首尾点按两种模式。两种模式均使用 Mac 默认按键配置。首页显示实际蓝牙名称，并提供配对入口和电脑声音输入设置指南。指南末页的「恢复原模式」切回耳机网关。见[真机验证](verification.md)。
 - `tools/` 独立声明 Playwright、PNG 和图片比较依赖，包含离线模拟器与共享 UI 校验工具。它读取 `config/radio-ui/` 并生成 Android/模拟器适配代码，不打入设备运行包。
 
 桌面「系统设置」发送 `Settings.ACTION_SETTINGS`，打开系统设置首页；「手机配置」仍进入 NeoTalkie 的 BLE 页面。系统设置由设备 ROM 提供，本仓库不实现或修改它。

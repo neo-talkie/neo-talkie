@@ -1,4 +1,4 @@
-package com.neotalkie.hfpmic;
+package com.neotalkie.audiolink;
 
 import android.bluetooth.*;
 import android.content.Context;
@@ -31,7 +31,7 @@ final class MxB5Keyboard implements BluetoothProfile.ServiceListener {
     BluetoothHidDevice hid = (BluetoothHidDevice) service;
     if (closed) { adapter.closeProfileProxy(PROFILE, hid); return; }
     proxy = hid;
-    hid.registerApp(new BluetoothHidDeviceAppSdpSettings("NeoTalkie PTT", "PTT keyboard",
+    hid.registerApp(new BluetoothHidDeviceAppSdpSettings("NeoTalkie Audio Link", "PTT keyboard",
         "NeoTalkie", (byte) 64, REPORT), null, null, new BluetoothHidDeviceCallback() {
       public void onAppStatusChanged(BluetoothDevice host, BluetoothHidDeviceAppConfiguration app, boolean ok) {
         main.post(() -> {

@@ -1,4 +1,4 @@
-package com.neotalkie.hfpmic;
+package com.neotalkie.audiolink;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -9,7 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-final class MxB5MicMode {
+final class MxB5AudioRole {
   private static final String PROPERTY = "persist.service.bt.hfp.client";
 
   private static String readRole() throws IOException, InterruptedException {

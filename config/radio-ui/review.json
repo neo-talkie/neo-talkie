@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Extend radio screen timeout to 2 minutes on authenticated Mini-Program requests",
+  "reason": "Restyle Design Studio UI to match miniprogram Engineering White + Signal Orange + PTT Teal palette and echo-wave logo",
   "hashes": {
     "android/audio-link/AndroidManifest.xml": "049be6fb721384625a665c479817abfc01b5c52b6b9374b8db31477f08b6f397",
     "android/audio-link/mx-b5-api/android/bluetooth/BluetoothHeadsetClient.java": "7e8a9ce53c9d7eb3ecf06ceb9d61bda267f16fbcab3a2c986bbdae779a4e69fe",
@@ -62,20 +62,20 @@
     "android/talk/src/com/neotalkie/device/VoiceSocket.java": "3574f155150f13e6eb2ed24ab319979fee5d214f3bc3a4980e31a4eb25f95026",
     "config/radio-ui/contract.json": "1495c134ac0df88d07301574efb807ab9272d00ea982e30f03257868a0b9bd4e",
     "config/radio-ui/scenarios.json": "138231d99e7b596dc8e2d1254fb21132ff77938a7b4c24dc8abe1f142e0ad77c",
-    "tools/simulator/app.js": "75e6eeff044528f8706ec9deb7f86f98e01adb228f879bb71f2ba2d0194eb468",
+    "tools/simulator/app.js": "b566e4faa6b20b6303e69f9eeb775c6eb009fe49662bbd95feb094c30010f034",
     "tools/simulator/assets/DroidSansFallback.woff2": "a755de04210c36273ec109d624f7cad7520a6df897817f3d020583f06f095b57",
     "tools/simulator/assets/Roboto-Regular.woff2": "f78aeeeea99a07a1c3a1f50f37e8ebfad5287cbd8536ce09987da60954fdf438",
-    "tools/simulator/assets/favicon.svg": "0d558732bcd49ac8ed4ada9b13bf6034f3cc27c094862462800220781e195bcd",
-    "tools/simulator/index.html": "2a40f11b698bf4d906e886685cbd4f74fbe105eb374532e28152065ddb7e24ab",
+    "tools/simulator/assets/favicon.svg": "07c52ac22765f11fcc6a10ddfaadfce13aa84bc67988c7ba81b65fe1fafcd724",
+    "tools/simulator/index.html": "2442022417d0a44bbdd0979957cf94359d3877e0dc662517894103a4c7b400ad",
     "tools/simulator/model.js": "50e649164ea977d4fb76c837455213b2c273a49ac870219f7ce62cdfa8ae2d2f",
     "tools/simulator/pages.js": "381fd770fd7e467c9d064b27d56a75dc4114c9746352957e542fee38c74a29d2",
     "tools/simulator/render.js": "1f2aa0bf0609135d3053562a1c1b28c2fb4e97140ccb4651594e93460bd9cd59",
     "tools/simulator/server.mjs": "afc6482da9fbfab64247a89e620102bcf1113e6ce932f6462884285b41162cf1",
-    "tools/simulator/studio-release.json": "a1f0033cc08eb4ddefc21cddf04176a850dde3e20142092ce331a2f020ca970c",
+    "tools/simulator/studio-release.json": "e715aa7213a560a5b2db42d287d269b20da5b774f2f19752fc4cbb4be73c5351",
     "tools/simulator/studio/catalog.js": "03a383435e161463f1aa1b0dfaaa914c3d5854ef5e0e8514eb5e94e698e52bbb",
-    "tools/simulator/studio/index.html": "e1a9c99d4fd4c42ea3a665f92d42f4bfbbf3fe8210c78f5d9308f3e34294eb63",
-    "tools/simulator/studio/studio.css": "c789111ba0d2fd7ffd70702757383e965c8e4d0c2ffda8732634c75854e24e23",
+    "tools/simulator/studio/index.html": "85ab407b4d0661ef370073e211e471eaace8261669186457ebd20e8cff8a5c0a",
+    "tools/simulator/studio/studio.css": "b7b4eff0f5831edfe56be5b4fffbbedd96d9bb13dae2b4a4683e664a1e37d43b",
     "tools/simulator/studio/studio.js": "d8048e45720b8f483f70d524e6fd11734e3d4b7d11487038178d16268eb09ca3",
-    "tools/simulator/style.css": "2049a7b13c35343936b38a8a9c6b35400eb0bfcb15adfeae35b7d46c754e26a0"
+    "tools/simulator/style.css": "ac9ea76321a446ce6187bca08a8d1ae0383e56dda5f7b194a92f672ff8e24e52"
   }
 }

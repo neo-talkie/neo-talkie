@@ -342,7 +342,7 @@ async function deviceCanvas() {
   c.width = 840;
   c.height = 1360;
   const x = c.getContext("2d");
-  x.fillStyle = "#f2f4ef";
+  x.fillStyle = "#f3f2ed";
   x.fillRect(0, 0, c.width, c.height);
   x.imageSmoothingEnabled = false;
   x.drawImage(img, 0, 0, c.width, c.height);
@@ -359,11 +359,11 @@ async function boardCanvas() {
   const groups=[...new Set(PRESETS.map(p=>p.group))];
   const totalHeight=140+groups.reduce((h,g)=>h+54+Math.ceil(PRESETS.filter(p=>p.group===g).length/cols)*cellH,0);
   const c=document.createElement('canvas');c.width=cols*cellW+48;c.height=totalHeight;
-  const x=c.getContext('2d');x.fillStyle='#eff3ef';x.fillRect(0,0,c.width,c.height);x.imageSmoothingEnabled=false;
-  const label=(value,px,py,size=16,color='#274b3d')=>{x.fillStyle=color;x.font=`${size}px "Radio CJK",sans-serif`;x.fillText(value,px,py);};
+  const x=c.getContext('2d');x.fillStyle='#f3f2ed';x.fillRect(0,0,c.width,c.height);x.imageSmoothingEnabled=false;
+  const label=(value,px,py,size=16,color='#151618')=>{x.fillStyle=color;x.font=`${size}px "Radio CJK",sans-serif`;x.fillText(value,px,py);};
   label('NEOTALKIE / 手台全量界面回归',32,46,30);
   label(`Android ${ANDROID_BASELINE} · 160 × 128 px · ${PRESETS.length} 个命名场景 · 2× 整数放大`,32,78,18);
-  label('离线模拟 / 参数可编辑 / 系统应用图标为占位 / 字体栅格化与真机可能有细微差异',32,106,15,'#65786f');
+  label('离线模拟 / 参数可编辑 / 系统应用图标为占位 / 字体栅格化与真机可能有细微差异',32,106,15,'#686a66');
   let top=140;
   for(const group of groups){
     const items=PRESETS.filter(p=>p.group===group);
@@ -375,7 +375,7 @@ async function boardCanvas() {
       x.drawImage(small,px+10,py+10,320,256);
       const number=String(PRESETS.indexOf(p)+1).padStart(3,'0');
       label(`${number}  ${p.name}`,px+10,py+287,14);
-      label(p.id,px+10,py+306,11,'#647b70');
+      label(p.id,px+10,py+306,11,'#686a66');
     }
     top+=Math.ceil(items.length/cols)*cellH;
   }

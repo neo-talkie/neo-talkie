@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "files": {
     "THIRD_PARTY.md": "8ded7209bbed3560cbd7dd83f5c2ce6cf8a4fb3442de5ccb297136578872bc62",
-    "app.js": "75e6eeff044528f8706ec9deb7f86f98e01adb228f879bb71f2ba2d0194eb468",
+    "app.js": "b566e4faa6b20b6303e69f9eeb775c6eb009fe49662bbd95feb094c30010f034",
     "assets/DroidSansFallback.woff2": "a755de04210c36273ec109d624f7cad7520a6df897817f3d020583f06f095b57",
     "assets/NOTICE": "38751245389e1e23f73e6f5384b5cbe7fa972cc4410c5adc9c04b082a0b9561a",
     "assets/Roboto-Regular.woff2": "f78aeeeea99a07a1c3a1f50f37e8ebfad5287cbd8536ce09987da60954fdf438",
     "assets/checksums.json": "6091160a64d45271604261f2a39fc4fbfb31c9df8c09e8aec0fffc2ffdb2b260",
-    "assets/favicon.svg": "0d558732bcd49ac8ed4ada9b13bf6034f3cc27c094862462800220781e195bcd",
+    "assets/favicon.svg": "07c52ac22765f11fcc6a10ddfaadfce13aa84bc67988c7ba81b65fe1fafcd724",
     "assets/weiwei-logo.png": "1f880ce8fc7ee14b5a509d585108a995265aaf5025c2bf62c10929602157122b",
-    "index.html": "2a40f11b698bf4d906e886685cbd4f74fbe105eb374532e28152065ddb7e24ab",
+    "index.html": "2442022417d0a44bbdd0979957cf94359d3877e0dc662517894103a4c7b400ad",
     "model.js": "50e649164ea977d4fb76c837455213b2c273a49ac870219f7ce62cdfa8ae2d2f",
     "pages.js": "381fd770fd7e467c9d064b27d56a75dc4114c9746352957e542fee38c74a29d2",
     "render.js": "1f2aa0bf0609135d3053562a1c1b28c2fb4e97140ccb4651594e93460bd9cd59",
@@ -194,9 +194,9 @@
     "studio/baseline/wifi-timeout.png": "e3378e148af8eef644da1265f57c76bf6a0f662466d05347a196f67feb4dde8f",
     "studio/baseline/wifi-wifiFailed.png": "4b9aa48dcdc070acadf2e5f054e23f91315b3bf2f7aba8c4cbb2adf814b74788",
     "studio/catalog.js": "03a383435e161463f1aa1b0dfaaa914c3d5854ef5e0e8514eb5e94e698e52bbb",
-    "studio/index.html": "e1a9c99d4fd4c42ea3a665f92d42f4bfbbf3fe8210c78f5d9308f3e34294eb63",
-    "studio/studio.css": "c789111ba0d2fd7ffd70702757383e965c8e4d0c2ffda8732634c75854e24e23",
+    "studio/index.html": "85ab407b4d0661ef370073e211e471eaace8261669186457ebd20e8cff8a5c0a",
+    "studio/studio.css": "b7b4eff0f5831edfe56be5b4fffbbedd96d9bb13dae2b4a4683e664a1e37d43b",
     "studio/studio.js": "d8048e45720b8f483f70d524e6fd11734e3d4b7d11487038178d16268eb09ca3",
-    "style.css": "2049a7b13c35343936b38a8a9c6b35400eb0bfcb15adfeae35b7d46c754e26a0"
+    "style.css": "ac9ea76321a446ce6187bca08a8d1ae0383e56dda5f7b194a92f672ff8e24e52"
   }
 }

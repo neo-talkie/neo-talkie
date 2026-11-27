@@ -13,6 +13,9 @@ final class PixelArt {
   static final Bitmap HOME_MARK = mark(2);
   static final Bitmap PAGE_ARROWS = pageArrows();
   static final Bitmap[] WIFI = {wifi(0), wifi(1), wifi(2), wifi(3), wifi(4)};
+  static final Bitmap[] WIFI_COMPACT = {
+    wifiCompact(0), wifiCompact(1), wifiCompact(2), wifiCompact(3), wifiCompact(4)
+  };
   private static final int[][] DIGITS = UiContract.DIGITS;
   private static final int[] COLON = {0, 1, 0, 1, 0},
       SLASH = {1, 1, 2, 4, 4},
@@ -95,6 +98,30 @@ final class PixelArt {
     canvas.drawRect(11, 12, 13, 13, paint);
     paint.setColor(level >= 1 ? UiContract.C_WHITE : UiContract.C_DIM);
     canvas.drawRect(8, 14, 11, 17, paint);
+    return bitmap;
+  }
+
+  private static Bitmap wifiCompact(int level) {
+    Bitmap bitmap = Bitmap.createBitmap(13, 10, Bitmap.Config.ARGB_8888);
+    bitmap.setDensity(Bitmap.DENSITY_NONE);
+    Canvas canvas = new Canvas(bitmap);
+    Paint paint = new Paint();
+    paint.setColor(level >= 4 ? UiContract.C_WHITE : UiContract.C_DIM);
+    canvas.drawRect(3, 0, 10, 1, paint);
+    canvas.drawRect(1, 1, 3, 2, paint);
+    canvas.drawRect(10, 1, 12, 2, paint);
+    canvas.drawRect(0, 2, 1, 3, paint);
+    canvas.drawRect(12, 2, 13, 3, paint);
+    paint.setColor(level >= 3 ? UiContract.C_WHITE : UiContract.C_DIM);
+    canvas.drawRect(4, 3, 9, 4, paint);
+    canvas.drawRect(2, 4, 4, 5, paint);
+    canvas.drawRect(9, 4, 11, 5, paint);
+    paint.setColor(level >= 2 ? UiContract.C_WHITE : UiContract.C_DIM);
+    canvas.drawRect(5, 6, 8, 7, paint);
+    canvas.drawRect(4, 7, 5, 8, paint);
+    canvas.drawRect(8, 7, 9, 8, paint);
+    paint.setColor(level >= 1 ? UiContract.C_WHITE : UiContract.C_DIM);
+    canvas.drawRect(5, 8, 8, 10, paint);
     return bitmap;
   }
 

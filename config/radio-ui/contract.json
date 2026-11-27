@@ -90,7 +90,7 @@
     "text_098": "移动网络已连接",
     "text_099": "移动网络未连接",
     "system_status": "系统状态",
-    "text_102": "系统设置",
+    "text_102": "Android Settings",
     "followup": "继续追问",
     "text_104": "网关 ",
     "text_105": "网络已连接",
@@ -227,7 +227,13 @@
     "ota_storage_error": "存储空间不足",
     "ota_install_failed": "静默安装失败",
     "ota_update_key": "MENU 更新",
-    "ota_recheck_key": "MENU 重检"
+    "ota_recheck_key": "MENU 重检",
+    "home_desc_talk": "按住PTT智能语音对话",
+    "home_desc_device": "网络、状态与软件更新",
+    "home_desc_android": "系统Wi-Fi与蓝牙设置",
+    "home_desc_ble": "微信配网与频道管理",
+    "home_desc_audio": "蓝牙连接电脑做麦克风",
+    "home_desc_app": "打开已安装的第三方应用"
   },
   "states": {
     "idle": {
@@ -407,7 +413,15 @@
     "MENU_BASELINE": 51,
     "MENU_FONT": 18,
     "MENU_TEXT_X": 12,
-    "MENU_VISIBLE_ROWS": 3
+    "MENU_VISIBLE_ROWS": 3,
+    "HEADER_STANDARD_HEIGHT": 27,
+    "HEADER_COMPACT_HEIGHT": 16,
+    "HOME_TILE_SIZE": 44,
+    "HOME_TILE_Y": 20,
+    "HOME_TITLE_Y": 82,
+    "HOME_TITLE_FONT": 17,
+    "HOME_DESC_Y": 99,
+    "HOME_DESC_FONT": 13
   },
   "colors": {
     "BG": "#0c1b18",
@@ -427,7 +441,11 @@
     "SELECTION": "#f04e1a",
     "CHECKING": "#ff6b3d",
     "HOME_BG": "#0c1b18",
-    "HOME_ICON": "#183c35"
+    "HOME_ICON": "#183c35",
+    "HEADER_COMPACT_EDGE": "#3b5952",
+    "HOME_TILE_HIGHLIGHT": "#26554b",
+    "HOME_DOT_IDLE": "#294a42",
+    "HOME_DESC": "#b2c4be"
   },
   "timing": {
     "CAPTURE_MS": 30000,

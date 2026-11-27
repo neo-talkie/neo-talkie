@@ -1185,15 +1185,15 @@
     "id": "home-1",
     "group": "桌面与息屏",
     "name": "桌面：设备设置",
-    "note": "系统应用图标使用占位，ROM 界面不属于回归范围",
+    "note": "小顶栏 + 44×44 桌面图标与功能说明 · 设备设置入口",
     "view": "home",
     "selected": 1
   },
   {
     "id": "home-2",
     "group": "桌面与息屏",
-    "name": "桌面：系统设置",
-    "note": "系统应用图标使用占位，ROM 界面不属于回归范围",
+    "name": "桌面：Android Settings",
+    "note": "原“系统设置”更名为 Android Settings，区分手机配置",
     "view": "home",
     "selected": 2
   },
@@ -1201,12 +1201,12 @@
     "id": "home-extra",
     "group": "桌面与息屏",
     "name": "桌面：其他应用",
-    "note": "动态应用列表与长标题截断",
+    "note": "动态应用列表、默认像素图标与长标题截断",
     "view": "home",
     "selected": 3,
     "homeLabels": [
       "NeoTalkie对讲",
-      "系统设置",
+      "Android Settings",
       "对讲设置",
       "厂家附加应用长名称"
     ]

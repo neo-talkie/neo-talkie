@@ -51,6 +51,43 @@ function cleanFields(defaults, source) {
     }),
   );
 }
+export function defaultHomeApps() {
+  return [
+    { label: T.text_005, desc: T.home_desc_talk, icon: "talk" },
+    { label: T.device_settings, desc: T.home_desc_device, icon: "device" },
+    { label: T.text_102, desc: T.home_desc_android, icon: "android" },
+    { label: T.ble_entry, desc: T.home_desc_ble, icon: "ble" },
+  ];
+}
+export function homeAppMeta(label) {
+  const s = String(label ?? "");
+  if (s === T.text_005) return { icon: "talk", desc: T.home_desc_talk };
+  if (s === T.device_settings) return { icon: "device", desc: T.home_desc_device };
+  if (s === T.text_102 || s === "系统设置") return { icon: "android", desc: T.home_desc_android };
+  if (s === T.ble_entry) return { icon: "ble", desc: T.home_desc_ble };
+  if (s.includes("音频互联") || s.includes("Audio Link")) return { icon: "audio", desc: T.home_desc_audio };
+  return { icon: "app", desc: T.home_desc_app };
+}
+function cleanHomeApps(input) {
+  if (Array.isArray(input.homeApps) && input.homeApps.length) {
+    return input.homeApps.slice(0, 8).map((item) => {
+      const label = String(item?.label ?? "").slice(0, 80);
+      const fallback = homeAppMeta(label);
+      return {
+        label,
+        desc: typeof item?.desc === "string" ? item.desc.slice(0, 80) : fallback.desc,
+        icon: typeof item?.icon === "string" ? item.icon : fallback.icon,
+      };
+    });
+  }
+  if (Array.isArray(input.homeLabels) && input.homeLabels.length) {
+    return input.homeLabels.slice(0, 8).map((v) => {
+      const label = String(v).slice(0, 80);
+      return { label, ...homeAppMeta(label) };
+    });
+  }
+  return defaultHomeApps();
+}
 export function createState(input = {}) {
   const phase = Object.hasOwn(PHASES, input.phase) ? input.phase : "idle";
   const view = Object.hasOwn(VIEWS, input.view) ? input.view : "main";
@@ -120,6 +157,7 @@ export function createState(input = {}) {
       Array.isArray(input.homeLabels) && input.homeLabels.length
         ? input.homeLabels.slice(0, 8).map((v) => String(v).slice(0, 80))
         : [T.text_005, T.device_settings, T.text_102, T.ble_entry],
+    homeApps: cleanHomeApps(input),
     footerOpacity:
       input.footerOpacity == null
         ? null

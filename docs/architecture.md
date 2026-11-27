@@ -2,7 +2,7 @@
 
 核心功能由两个 Android 应用提供：`com.neotalkie.launcher` 桌面和 `com.neotalkie.talk` 对讲。两 APK 使用相同开发签名，独立进程、独立私有文件与生命周期。共享 Java 命名空间 `com.neotalkie.device` 是代码组织方式，不代表共享 Android UID 或数据。禁止使用 sharedUserId。
 
-桌面持有设备状态和 HOME 入口，通过 Android 系统设置首页访问 Wi-Fi 及其他系统配置，或使用手机配置。对讲持有语音配置、麦克风轮次和上下文。桌面不依赖语音密钥，不包含 OkHttp/Okio 或模型代码，也不申请麦克风权限。桌面固定入口为对讲、设备设置、系统设置和手机配置。设备设置提供网络状态、系统状态以及「软件更新」全量 OTA（从 GitHub Releases 读取 `ota-manifest.json`，内置 `ISRG Root X1` 根证书并校验 SHA-256，在具备静默安装权限的设备上经 `PackageInstaller` 无弹窗升级全部应用——Android 5.1 需预置到 `/system/priv-app/` 获取 `INSTALL_PACKAGES`，Android 6.0+ 可通过 `dpm set-device-owner` 激活——且始终最后安装桌面自身；见[OTA 静默更新与发布流水线](ota.md)）。手机配置提供前台五分钟 BLE 会话，承接物理授权、加密配置和 Wi-Fi 连接状态。对讲菜单中的系统状态通过明确的组件目标进入桌面；语音连通检查留在对讲 APK。公共 UI/电源/音量代码从 `android/common/` 编译进两个 APK，不作为独立安装包。
+桌面持有设备状态和 HOME 入口，通过 `Android Settings`（原“系统设置”）访问 Wi-Fi 及其他系统配置，或使用「手机配置」。对讲持有语音配置、麦克风轮次和上下文。桌面不依赖语音密钥，不包含 OkHttp/Okio 或模型代码，也不申请麦克风权限。桌面固定入口为 `NeoTalkie对讲`、`设备设置`、`Android Settings` 和 `手机配置`，每个入口带有图标与功能解释字段。设备设置提供网络状态、系统状态以及「软件更新」全量 OTA（从 GitHub Releases 读取 `ota-manifest.json`，内置 `ISRG Root X1` 根证书并校验 SHA-256，在具备静默安装权限的设备上经 `PackageInstaller` 无弹窗升级全部应用——Android 5.1 需预置到 `/system/priv-app/` 获取 `INSTALL_PACKAGES`，Android 6.0+ 可通过 `dpm set-device-owner` 激活——且始终最后安装桌面自身；见[OTA 静默更新与发布流水线](ota.md)）。手机配置提供前台五分钟 BLE 会话，承接物理授权、加密配置和 Wi-Fi 连接状态。对讲菜单中的系统状态通过明确的组件目标进入桌面；语音连通检查留在对讲 APK。公共 UI/电源/音量代码从 `android/common/` 编译进两个 APK，不作为独立安装包。
 
 ## 工程与依赖边界
 
@@ -12,7 +12,18 @@
 - `android/audio-link/` 交付 NeoTalkie Audio Link（音频互联）。桌面通过系统应用列表发现它。在 mx_b5 Android 5.1 上，打开应用时先保存蓝牙开关及两个角色的原始属性值，再写入并读回 `persist.service.bt.a2dp.sink` 与 `persist.service.bt.hfp.client`，按需统一重启蓝牙。系统蓝牙负责配对、A2DP 媒体解码播放与 HFP 通话。主机根据音频用途选择协议，PTT 只控制 HFP 语音通路。音频互联 APK 的前台服务用厂商音频参数控制 HFP 麦克风通路，并通过厂商 HID Device 接口发送 Globe。应用在前台处理 PTT，提供普通 PTT 和 Fn 首尾点按两种模式。两种模式均使用 Mac 默认按键配置。首页和模式页复用公共音量条，在前台接管旋钮并显示当前档位，SCO 接通时调节 HFP 扬声器音量，其余时间调节媒体音量。首页显示手台蓝牙名，配对入口和模式选择纵向排列。选择配对时先读取当前可发现状态。已获系统授予 WRITE_SECURE_SETTINGS 的 mx_b5 安装可直接开启 120 秒可发现窗口，其余安装由 Android 请求用户确认。首次配对码由系统处理。界面可见期间绑定音频服务，失去焦点即释放 PTT；最后一个界面停止并解绑时，服务撤销音频和 HID、恢复进入时的两个角色属性与蓝牙开关状态，再结束自身。快速重开时以最近一次请求为准。见[真机验证](verification.md)。
 - `tools/` 独立声明 Playwright、PNG 和图片比较依赖，包含离线模拟器与共享 UI 校验工具。它读取 `config/radio-ui/` 并生成 Android/模拟器适配代码，不打入设备运行包。
 
-桌面「系统设置」发送 `Settings.ACTION_SETTINGS`，打开系统设置首页；「手机配置」仍进入 NeoTalkie 的 BLE 页面。系统设置由设备 ROM 提供，本仓库不实现或修改它。
+桌面 `Android Settings` 发送 `Settings.ACTION_SETTINGS`，打开系统设置首页；「手机配置」仍进入 NeoTalkie 的 BLE 页面。系统设置由设备 ROM 提供，本仓库不实现或修改它。
+
+## 手台顶栏双模式与桌面规范
+
+160×128 手台屏幕的共享顶栏（`StatusStrip`）采用双模式设计规范，统一由 `config/radio-ui/contract.json` 定义尺寸与色彩常量：
+
+| 模式 | 高度与分割线 | 时间点阵（3×5） | 电池与网络 | 适用页面 |
+| --- | --- | --- | --- | --- |
+| **大顶栏（`STANDARD`）** | `27 px`，白色分割线 `y = 26` | `scale = 4`（20 px 高） | 竖向电池 + 充电闪电 + 19×17 Wi-Fi（或 14 px 文字） | 对讲主屏（强待机时钟可读性）、菜单与状态信息页 |
+| **小顶栏（`COMPACT`）** | `16 px`，低干扰分割线 `#3b5952`（`y = 15`） | `scale = 2`（10 px 高） | 右侧横向 14×8 电池 + 迷你闪电 + 13×10 紧凑 Wi-Fi（或 10 px 文字） | Launcher 桌面及后续需要更大主区的内容密集页面 |
+
+Launcher 桌面使用小顶栏模式，主区（`y = 16..103`）采用单屏聚焦应用卡片：居中 `44×44` 切角图标底托（`#183c35` 底 + `#f04e1a` 焦点描边，内置应用绘制 `28×28` 像素图标，第三方应用优先显示其 APK 图标并回退到 2×2 像素网格）、`17 px` 居中应用名、`13 px` 居中功能解释字段（`#b2c4be`，超宽自动缩至最低 11 px），右上角点阵页码与右侧纵向定位点条配合实体上下键切换。
 
 CI 从工具锁文件安装工具，运行各工程离线测试和 UI 图册检查。私有配置、签名、依赖缓存与构建输出均留在忽略目录，不作为工程源码。
 

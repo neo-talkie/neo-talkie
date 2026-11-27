@@ -2,7 +2,7 @@
 package com.neotalkie.device;
 
 final class UiContract {
-  static final String HASH="e4611e932325394dd5262e20dbc83f006f93fbf9bc42fafd35d2ce3e04ffd503";
+  static final String HASH="2e9c84d79a0547fa9d2fc653f8feba4ba70c512d0bd314caf2b20eecb3c92461";
   static final String T_TEXT_000="";
   static final String T_TEXT_001=" 分钟";
   static final String T_TEXT_003=" 未通过";
@@ -91,7 +91,7 @@ final class UiContract {
   static final String T_TEXT_098="移动网络已连接";
   static final String T_TEXT_099="移动网络未连接";
   static final String T_SYSTEM_STATUS="系统状态";
-  static final String T_TEXT_102="系统设置";
+  static final String T_TEXT_102="Android Settings";
   static final String T_FOLLOWUP="继续追问";
   static final String T_TEXT_104="网关 ";
   static final String T_TEXT_105="网络已连接";
@@ -229,6 +229,12 @@ final class UiContract {
   static final String T_OTA_INSTALL_FAILED="静默安装失败";
   static final String T_OTA_UPDATE_KEY="MENU 更新";
   static final String T_OTA_RECHECK_KEY="MENU 重检";
+  static final String T_HOME_DESC_TALK="按住PTT智能语音对话";
+  static final String T_HOME_DESC_DEVICE="网络、状态与软件更新";
+  static final String T_HOME_DESC_ANDROID="系统Wi-Fi与蓝牙设置";
+  static final String T_HOME_DESC_BLE="微信配网与频道管理";
+  static final String T_HOME_DESC_AUDIO="蓝牙连接电脑做麦克风";
+  static final String T_HOME_DESC_APP="打开已安装的第三方应用";
   static final int WIDTH=160;
   static final int HEIGHT=128;
   static final int LEFT=6;
@@ -277,6 +283,14 @@ final class UiContract {
   static final int MENU_FONT=18;
   static final int MENU_TEXT_X=12;
   static final int MENU_VISIBLE_ROWS=3;
+  static final int HEADER_STANDARD_HEIGHT=27;
+  static final int HEADER_COMPACT_HEIGHT=16;
+  static final int HOME_TILE_SIZE=44;
+  static final int HOME_TILE_Y=20;
+  static final int HOME_TITLE_Y=82;
+  static final int HOME_TITLE_FONT=17;
+  static final int HOME_DESC_Y=99;
+  static final int HOME_DESC_FONT=13;
   static final int C_BG=0xff0c1b18;
   static final int C_WHITE=0xffffffff;
   static final int C_INK=0xffe0eae4;
@@ -295,6 +309,10 @@ final class UiContract {
   static final int C_CHECKING=0xffff6b3d;
   static final int C_HOME_BG=0xff0c1b18;
   static final int C_HOME_ICON=0xff183c35;
+  static final int C_HEADER_COMPACT_EDGE=0xff3b5952;
+  static final int C_HOME_TILE_HIGHLIGHT=0xff26554b;
+  static final int C_HOME_DOT_IDLE=0xff294a42;
+  static final int C_HOME_DESC=0xffb2c4be;
   static final int CAPTURE_MS=30000;
   static final int SHORT_INPUT_MS=1000;
   static final int SHORT_NOTICE_MS=1500;

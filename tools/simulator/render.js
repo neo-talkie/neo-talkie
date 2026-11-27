@@ -97,7 +97,77 @@ function wifi(c, level) {
     ),
   );
 }
-function header(c, s) {
+function wifiCompact(c, level, x, y) {
+  const shapes = [
+    [
+      [3, 0, 7, 1],
+      [1, 1, 2, 1],
+      [10, 1, 2, 1],
+      [0, 2, 1, 1],
+      [12, 2, 1, 1],
+    ],
+    [
+      [4, 3, 5, 1],
+      [2, 4, 2, 1],
+      [9, 4, 2, 1],
+    ],
+    [
+      [5, 6, 3, 1],
+      [4, 7, 1, 1],
+      [8, 7, 1, 1],
+    ],
+    [[5, 8, 3, 2]],
+  ];
+  shapes.forEach((sh, i) =>
+    sh.forEach(([dx, dy, w, h]) =>
+      rect(c, x + dx, y + dy, w, h, level >= 4 - i ? COLORS.white : COLORS.dim),
+    ),
+  );
+}
+function headerCompact(c, s) {
+  // Compact top bar (16px tall, divider at y=15) for icon/content-dense apps
+  numbers(c, s.time, 6, 3, 2, COLORS.white);
+  const type = networkType(s);
+  let rightCursor = L.RIGHT;
+  if (type === "wifi") {
+    rightCursor -= 13;
+    wifiCompact(c, s.wifi, rightCursor, 3);
+  } else {
+    const label =
+      type === "offline"
+        ? T.text_095
+        : type === "mobile"
+          ? T.text_096
+          : T.text_110;
+    font(c, 10);
+    const w = Math.ceil(c.measureText(label).width);
+    rightCursor -= w;
+    text(c, label, rightCursor, 12, 10, COLORS.white);
+  }
+  // Horizontal battery (14x8 + 2x4 nub) to the left of network indicator
+  const batX = rightCursor - 21;
+  rect(c, batX, 4, 14, 8, COLORS.white);
+  rect(c, batX + 1, 5, 12, 6, COLORS.bg);
+  rect(c, batX + 14, 6, 2, 4, COLORS.white);
+  if (s.battery > 0) {
+    const fill = Math.max(1, Math.floor((s.battery * 10) / 100));
+    rect(c, batX + 2, 6, fill, 4, COLORS.white);
+  }
+  if (s.charging) {
+    const bx = batX - 6;
+    rect(c, bx + 2, 4, 2, 2, COLORS.white);
+    rect(c, bx + 1, 6, 3, 1, COLORS.white);
+    rect(c, bx, 7, 4, 1, COLORS.white);
+    rect(c, bx + 2, 8, 2, 2, COLORS.white);
+    rect(c, bx + 1, 10, 2, 2, COLORS.white);
+  }
+  rect(c, 6, 15, 148, 1, C.HEADER_COMPACT_EDGE);
+}
+function header(c, s, mode = "standard") {
+  if (mode === "compact") {
+    headerCompact(c, s);
+    return;
+  }
   numbers(c, s.time, 6, 3, 4);
   rect(c, 87, 3, 4, 2, COLORS.white);
   rect(c, 84, 5, 10, 17, COLORS.white);
@@ -187,6 +257,104 @@ function getIcons() {
     ),
   });
 }
+function drawHomeTile(c, x, y, size) {
+  // Crisp 1px-chamfered industrial app tile with Signal Orange focus border
+  rect(c, x + 2, y, size - 4, size, COLORS.orange);
+  rect(c, x, y + 2, size, size - 4, COLORS.orange);
+  rect(c, x + 1, y + 1, size - 2, size - 2, COLORS.orange);
+  rect(c, x + 2, y + 1, size - 4, size - 2, C.HOME_ICON);
+  rect(c, x + 1, y + 2, size - 2, size - 4, C.HOME_ICON);
+  // Subtle top highlight inside tile
+  rect(c, x + 3, y + 2, size - 6, 1, C.HOME_TILE_HIGHLIGHT);
+}
+function drawHomeIcon(c, kind, x, y) {
+  // 28x28 crisp pixel-art glyphs centered inside 44x44 tile (+8, +8)
+  const ox = x + 8;
+  const oy = y + 8;
+  if (kind === "talk") {
+    // PTT capsule (left) + 3 pixel echo waves (right)
+    rect(c, ox + 2, oy + 3, 8, 2, COLORS.teal);
+    rect(c, ox + 2, oy + 23, 8, 2, COLORS.teal);
+    rect(c, ox + 1, oy + 5, 2, 18, COLORS.teal);
+    rect(c, ox + 9, oy + 5, 2, 18, COLORS.teal);
+    rect(c, ox + 5, oy + 9, 2, 10, C.METER);
+    // Inner orange echo arc
+    rect(c, ox + 14, oy + 9, 2, 2, COLORS.orange);
+    rect(c, ox + 16, oy + 11, 2, 6, COLORS.orange);
+    rect(c, ox + 14, oy + 17, 2, 2, COLORS.orange);
+    // Middle bright-orange echo arc
+    rect(c, ox + 19, oy + 6, 2, 2, COLORS.orangeText);
+    rect(c, ox + 21, oy + 8, 2, 12, COLORS.orangeText);
+    rect(c, ox + 19, oy + 20, 2, 2, COLORS.orangeText);
+    // Outer PTT-teal echo arc
+    rect(c, ox + 24, oy + 4, 2, 2, COLORS.teal);
+    rect(c, ox + 26, oy + 6, 2, 16, COLORS.teal);
+    rect(c, ox + 24, oy + 22, 2, 2, COLORS.teal);
+  } else if (kind === "device") {
+    // 3 tactile hardware sliders
+    rect(c, ox + 2, oy + 5, 24, 2, COLORS.ink);
+    rect(c, ox + 14, oy + 2, 8, 8, C.HOME_ICON);
+    rect(c, ox + 15, oy + 2, 6, 8, COLORS.orangeText);
+    rect(c, ox + 2, oy + 13, 24, 2, COLORS.ink);
+    rect(c, ox + 5, oy + 10, 8, 8, C.HOME_ICON);
+    rect(c, ox + 6, oy + 10, 6, 8, COLORS.teal);
+    rect(c, ox + 2, oy + 21, 24, 2, COLORS.ink);
+    rect(c, ox + 15, oy + 18, 8, 8, C.HOME_ICON);
+    rect(c, ox + 16, oy + 18, 6, 8, COLORS.white);
+  } else if (kind === "android") {
+    // Crisp 8-tooth pixel gear
+    rect(c, ox + 11, oy + 2, 6, 4, COLORS.ink);
+    rect(c, ox + 11, oy + 22, 6, 4, COLORS.ink);
+    rect(c, ox + 2, oy + 11, 4, 6, COLORS.ink);
+    rect(c, ox + 22, oy + 11, 4, 6, COLORS.ink);
+    rect(c, ox + 5, oy + 5, 4, 4, COLORS.ink);
+    rect(c, ox + 19, oy + 5, 4, 4, COLORS.ink);
+    rect(c, ox + 5, oy + 19, 4, 4, COLORS.ink);
+    rect(c, ox + 19, oy + 19, 4, 4, COLORS.ink);
+    rect(c, ox + 7, oy + 6, 14, 16, COLORS.ink);
+    rect(c, ox + 6, oy + 7, 16, 14, COLORS.ink);
+    rect(c, ox + 10, oy + 10, 8, 8, C.HOME_ICON);
+    rect(c, ox + 12, oy + 12, 4, 4, COLORS.teal);
+  } else if (kind === "ble") {
+    // Pixel smartphone + wireless echo arcs
+    rect(c, ox + 3, oy + 3, 10, 2, C.PAGE_TITLE);
+    rect(c, ox + 3, oy + 23, 10, 2, C.PAGE_TITLE);
+    rect(c, ox + 1, oy + 5, 2, 18, C.PAGE_TITLE);
+    rect(c, ox + 13, oy + 5, 2, 18, C.PAGE_TITLE);
+    rect(c, ox + 3, oy + 5, 10, 18, C.BG);
+    rect(c, ox + 6, oy + 7, 4, 1, "#9eb0aa");
+    rect(c, ox + 5, oy + 10, 6, 3, COLORS.teal);
+    rect(c, ox + 5, oy + 15, 4, 2, C.METER);
+    rect(c, ox + 6, oy + 20, 4, 1, COLORS.ink);
+    // Signal arcs
+    rect(c, ox + 17, oy + 11, 2, 1, COLORS.orange);
+    rect(c, ox + 18, oy + 12, 2, 4, COLORS.orange);
+    rect(c, ox + 17, oy + 16, 2, 1, COLORS.orange);
+    rect(c, ox + 21, oy + 8, 2, 2, COLORS.orangeText);
+    rect(c, ox + 22, oy + 10, 2, 8, COLORS.orangeText);
+    rect(c, ox + 21, oy + 18, 2, 2, COLORS.orangeText);
+    rect(c, ox + 25, oy + 7, 2, 14, COLORS.teal);
+  } else if (kind === "audio") {
+    // Pixel headphones + link dot
+    rect(c, ox + 8, oy + 4, 12, 3, COLORS.ink);
+    rect(c, ox + 5, oy + 7, 3, 3, COLORS.ink);
+    rect(c, ox + 20, oy + 7, 3, 3, COLORS.ink);
+    rect(c, ox + 4, oy + 10, 3, 8, COLORS.ink);
+    rect(c, ox + 21, oy + 10, 3, 8, COLORS.ink);
+    rect(c, ox + 3, oy + 14, 5, 8, COLORS.teal);
+    rect(c, ox + 20, oy + 14, 5, 8, COLORS.teal);
+    rect(c, ox + 4, oy + 15, 2, 6, C.METER);
+    rect(c, ox + 22, oy + 15, 2, 6, C.METER);
+    rect(c, ox + 12, oy + 18, 4, 3, COLORS.orangeText);
+    rect(c, ox + 10, oy + 22, 8, 2, COLORS.orangeText);
+  } else {
+    // Generic 2x2 pixel app grid
+    rect(c, ox + 4, oy + 4, 9, 9, COLORS.orangeText);
+    rect(c, ox + 15, oy + 4, 9, 9, COLORS.ink);
+    rect(c, ox + 4, oy + 15, 9, 9, COLORS.ink);
+    rect(c, ox + 15, oy + 15, 9, 9, COLORS.teal);
+  }
+}
 function volume(c, s, level = s.volume, maximum = 5) {
   const segments = Math.min(maximum, 15);
   const step = 114 / segments;
@@ -247,7 +415,7 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
     if (s.volumeUntil > now) volume(c, s, s.linkLevel, s.linkMax);
     return { lines: [], maxOffset: 0, total: 0, offset: 0 };
   }
-  header(c, s);
+  header(c, s, s.view === "home" ? "compact" : "standard");
   let layout = { lines: [], maxOffset: 0, total: 0, offset: 0 };
   if (s.view === "main") {
     const i = getIcons();
@@ -322,43 +490,56 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       );
     }
   } else if (s.view === "home") {
-    const labels = s.homeLabels;
-    const selected = Math.min(s.selected, labels.length - 1);
-    const visible = L.MENU_VISIBLE_ROWS;
-    const first = Math.max(
-      0,
-      Math.min(selected - visible + 1, labels.length - visible),
-    );
-    const activeRow = selected - first;
-    rect(
-      c,
-      L.LEFT,
-      L.MENU_TOP + activeRow * L.MENU_ROW_HEIGHT,
-      L.RIGHT - L.LEFT,
-      L.MENU_ROW_HEIGHT,
-      COLORS.orange,
-    );
-    labels.slice(first, first + visible).forEach((item, row) =>
-      text(
-        c,
-        item,
-        L.MENU_TEXT_X,
-        L.MENU_BASELINE + row * L.MENU_ROW_HEIGHT,
-        L.MENU_FONT,
-        row === activeRow ? COLORS.white : COLORS.ink,
-        L.RIGHT - L.MENU_TEXT_X - 4,
-      ),
-    );
-    if (labels.length > visible) {
-      const trackY = L.MENU_TOP;
-      const trackH = visible * L.MENU_ROW_HEIGHT;
-      const thumbH = Math.max(12, Math.round((trackH * visible) / labels.length));
-      const thumbY =
-        trackY +
-        Math.round(((trackH - thumbH) * first) / (labels.length - visible));
-      rect(c, 156, trackY, 2, trackH, "#22302d");
-      rect(c, 156, thumbY, 2, thumbH, "#7b8d89");
+    const apps = s.homeApps?.length
+      ? s.homeApps
+      : s.homeLabels.map((label) => ({ label, desc: "", icon: "app" }));
+    const selected = Math.min(s.selected, apps.length - 1);
+    const active = apps[selected];
+    const centerX = 78;
+    const tileSize = L.HOME_TILE_SIZE;
+    const tileX = centerX - tileSize / 2;
+    const tileY = L.HOME_TILE_Y;
+
+    // App icon tile (44x44)
+    drawHomeTile(c, tileX, tileY, tileSize);
+    drawHomeIcon(c, active.icon, tileX, tileY);
+
+    // Top-right pixel index counter (e.g. 1/4)
+    if (apps.length > 1) {
+      const counter = `${selected + 1}/${apps.length}`;
+      const counterW = counter.length * 8 - 2;
+      numbers(c, counter, L.RIGHT - counterW, 21, 2, COLORS.orangeText);
     }
+
+    // Right-edge vertical dot rail
+    if (apps.length > 1) {
+      const activeH = 9;
+      const dotH = 3;
+      const gap = 3;
+      const totalH = (apps.length - 1) * (dotH + gap) + activeH;
+      let dotY = Math.round(66 - totalH / 2);
+      if (dotY < 37) dotY = 37;
+      for (let idx = 0; idx < apps.length; idx++) {
+        const h = idx === selected ? activeH : dotH;
+        rect(c, 152, dotY, 3, h, idx === selected ? COLORS.orange : C.HOME_DOT_IDLE);
+        dotY += h + gap;
+      }
+    }
+
+    // Centered app title (17px) & description (13px)
+    c.textAlign = "center";
+    text(c, active.label, centerX, L.HOME_TITLE_Y, L.HOME_TITLE_FONT, COLORS.white, 140);
+    if (active.desc) {
+      let descSize = L.HOME_DESC_FONT;
+      font(c, descSize);
+      while (descSize > 11 && c.measureText(active.desc).width > 142) {
+        descSize -= 1;
+        font(c, descSize);
+      }
+      text(c, active.desc, centerX, L.HOME_DESC_Y, descSize, C.HOME_DESC, 142);
+    }
+    c.textAlign = "left";
+
     rect(
       c,
       0,

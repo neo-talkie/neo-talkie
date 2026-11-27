@@ -22,11 +22,15 @@ public final class HomeActivity extends Activity {
 
   private static final class Entry {
     final String label;
+    final String description;
+    final String iconKind;
     final Intent intent;
     final Drawable icon;
 
-    Entry(String label, Intent intent, Drawable icon) {
+    Entry(String label, String description, String iconKind, Intent intent, Drawable icon) {
       this.label = label;
+      this.description = description;
+      this.iconKind = iconKind;
       this.intent = intent;
       this.icon = icon;
     }
@@ -38,7 +42,7 @@ public final class HomeActivity extends Activity {
         .setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     panel = new HomePanel();
-    statusStrip = new StatusStrip(this, panel);
+    statusStrip = new StatusStrip(this, panel, StatusStrip.Mode.COMPACT);
     volumeStrip = new VolumeStrip(this, panel);
     setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
     setContentView(panel);
@@ -50,10 +54,26 @@ public final class HomeActivity extends Activity {
     statusStrip.start();
     PackageManager pm = getPackageManager();
     entries.clear();
-    add(UiContract.T_TEXT_005, DeviceRoutes.intent(DeviceRoutes.TALK, "MainActivity"));
-    add(UiContract.T_DEVICE_SETTINGS, new Intent(this, StatusActivity.class));
-    add(UiContract.T_TEXT_102, new Intent(Settings.ACTION_SETTINGS));
-    add(UiContract.T_BLE_ENTRY, new Intent(this, BleSetupActivity.class));
+    add(
+        UiContract.T_TEXT_005,
+        UiContract.T_HOME_DESC_TALK,
+        "talk",
+        DeviceRoutes.intent(DeviceRoutes.TALK, "MainActivity"));
+    add(
+        UiContract.T_DEVICE_SETTINGS,
+        UiContract.T_HOME_DESC_DEVICE,
+        "device",
+        new Intent(this, StatusActivity.class));
+    add(
+        UiContract.T_TEXT_102,
+        UiContract.T_HOME_DESC_ANDROID,
+        "android",
+        new Intent(Settings.ACTION_SETTINGS));
+    add(
+        UiContract.T_BLE_ENTRY,
+        UiContract.T_HOME_DESC_BLE,
+        "ble",
+        new Intent(this, BleSetupActivity.class));
     /* Vendor settings are available through Android Settings.
     add(
         UiContract.T_TEXT_030,
@@ -89,9 +109,12 @@ public final class HomeActivity extends Activity {
     for (ResolveInfo app : apps) {
       String pkg = app.activityInfo.packageName;
       if (!hidden.add(pkg)) continue;
+      boolean audioLink = "com.neotalkie.hfpmic".equals(pkg);
       entries.add(
           new Entry(
               app.loadLabel(pm).toString(),
+              audioLink ? UiContract.T_HOME_DESC_AUDIO : UiContract.T_HOME_DESC_APP,
+              audioLink ? "audio" : "app",
               new Intent(Intent.ACTION_MAIN)
                   .addCategory(Intent.CATEGORY_LAUNCHER)
                   .setComponent(new ComponentName(pkg, app.activityInfo.name)),
@@ -114,9 +137,10 @@ public final class HomeActivity extends Activity {
     panel.invalidate();
   }
 
-  private void add(String label, Intent intent) {
+  private void add(String label, String description, String iconKind, Intent intent) {
     ResolveInfo r = getPackageManager().resolveActivity(intent, 0);
-    if (r != null) entries.add(new Entry(label, intent, r.loadIcon(getPackageManager())));
+    if (r != null)
+      entries.add(new Entry(label, description, iconKind, intent, r.loadIcon(getPackageManager())));
   }
 
   private void open(int index) {
@@ -165,11 +189,19 @@ public final class HomeActivity extends Activity {
 
   final class HomePanel extends View {
     final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    final Paint pixelPaint = new Paint();
+    String counterText = "";
+    Bitmap counterBitmap;
     float downY;
 
     HomePanel() {
       super(HomeActivity.this);
       setFocusable(true);
+    }
+
+    void rect(Canvas c, int x, int y, int w, int h, int color) {
+      pixelPaint.setColor(color);
+      c.drawRect(x, y, x + w, y + h, pixelPaint);
     }
 
     void text(Canvas c, String s, float x, float y, int size, int color, int width) {
@@ -182,49 +214,174 @@ public final class HomeActivity extends Activity {
       c.drawText(s, x, y, paint);
     }
 
+    void drawHomeTile(Canvas c, int x, int y, int size) {
+      rect(c, x + 2, y, size - 4, size, UiContract.C_SELECTION);
+      rect(c, x, y + 2, size, size - 4, UiContract.C_SELECTION);
+      rect(c, x + 1, y + 1, size - 2, size - 2, UiContract.C_SELECTION);
+      rect(c, x + 2, y + 1, size - 4, size - 2, UiContract.C_HOME_ICON);
+      rect(c, x + 1, y + 2, size - 2, size - 4, UiContract.C_HOME_ICON);
+      rect(c, x + 3, y + 2, size - 6, 1, UiContract.C_HOME_TILE_HIGHLIGHT);
+    }
+
+    void drawHomeIcon(Canvas c, Entry entry, int x, int y) {
+      int ox = x + 8;
+      int oy = y + 8;
+      String kind = entry.iconKind;
+      if ("talk".equals(kind)) {
+        rect(c, ox + 2, oy + 3, 8, 2, UiContract.C_PTT);
+        rect(c, ox + 2, oy + 23, 8, 2, UiContract.C_PTT);
+        rect(c, ox + 1, oy + 5, 2, 18, UiContract.C_PTT);
+        rect(c, ox + 9, oy + 5, 2, 18, UiContract.C_PTT);
+        rect(c, ox + 5, oy + 9, 2, 10, UiContract.C_METER);
+        rect(c, ox + 14, oy + 9, 2, 2, UiContract.C_SELECTION);
+        rect(c, ox + 16, oy + 11, 2, 6, UiContract.C_SELECTION);
+        rect(c, ox + 14, oy + 17, 2, 2, UiContract.C_SELECTION);
+        rect(c, ox + 19, oy + 6, 2, 2, UiContract.C_ACCENT);
+        rect(c, ox + 21, oy + 8, 2, 12, UiContract.C_ACCENT);
+        rect(c, ox + 19, oy + 20, 2, 2, UiContract.C_ACCENT);
+        rect(c, ox + 24, oy + 4, 2, 2, UiContract.C_PTT);
+        rect(c, ox + 26, oy + 6, 2, 16, UiContract.C_PTT);
+        rect(c, ox + 24, oy + 22, 2, 2, UiContract.C_PTT);
+      } else if ("device".equals(kind)) {
+        rect(c, ox + 2, oy + 5, 24, 2, UiContract.C_INK);
+        rect(c, ox + 14, oy + 2, 8, 8, UiContract.C_HOME_ICON);
+        rect(c, ox + 15, oy + 2, 6, 8, UiContract.C_ACCENT);
+        rect(c, ox + 2, oy + 13, 24, 2, UiContract.C_INK);
+        rect(c, ox + 5, oy + 10, 8, 8, UiContract.C_HOME_ICON);
+        rect(c, ox + 6, oy + 10, 6, 8, UiContract.C_PTT);
+        rect(c, ox + 2, oy + 21, 24, 2, UiContract.C_INK);
+        rect(c, ox + 15, oy + 18, 8, 8, UiContract.C_HOME_ICON);
+        rect(c, ox + 16, oy + 18, 6, 8, UiContract.C_WHITE);
+      } else if ("android".equals(kind)) {
+        rect(c, ox + 11, oy + 2, 6, 4, UiContract.C_INK);
+        rect(c, ox + 11, oy + 22, 6, 4, UiContract.C_INK);
+        rect(c, ox + 2, oy + 11, 4, 6, UiContract.C_INK);
+        rect(c, ox + 22, oy + 11, 4, 6, UiContract.C_INK);
+        rect(c, ox + 5, oy + 5, 4, 4, UiContract.C_INK);
+        rect(c, ox + 19, oy + 5, 4, 4, UiContract.C_INK);
+        rect(c, ox + 5, oy + 19, 4, 4, UiContract.C_INK);
+        rect(c, ox + 19, oy + 19, 4, 4, UiContract.C_INK);
+        rect(c, ox + 7, oy + 6, 14, 16, UiContract.C_INK);
+        rect(c, ox + 6, oy + 7, 16, 14, UiContract.C_INK);
+        rect(c, ox + 10, oy + 10, 8, 8, UiContract.C_HOME_ICON);
+        rect(c, ox + 12, oy + 12, 4, 4, UiContract.C_PTT);
+      } else if ("ble".equals(kind)) {
+        rect(c, ox + 3, oy + 3, 10, 2, UiContract.C_PAGE_TITLE);
+        rect(c, ox + 3, oy + 23, 10, 2, UiContract.C_PAGE_TITLE);
+        rect(c, ox + 1, oy + 5, 2, 18, UiContract.C_PAGE_TITLE);
+        rect(c, ox + 13, oy + 5, 2, 18, UiContract.C_PAGE_TITLE);
+        rect(c, ox + 3, oy + 5, 10, 18, UiContract.C_BG);
+        rect(c, ox + 6, oy + 7, 4, 1, UiContract.C_HOME_DESC);
+        rect(c, ox + 5, oy + 10, 6, 3, UiContract.C_PTT);
+        rect(c, ox + 5, oy + 15, 4, 2, UiContract.C_METER);
+        rect(c, ox + 6, oy + 20, 4, 1, UiContract.C_INK);
+        rect(c, ox + 17, oy + 11, 2, 1, UiContract.C_SELECTION);
+        rect(c, ox + 18, oy + 12, 2, 4, UiContract.C_SELECTION);
+        rect(c, ox + 17, oy + 16, 2, 1, UiContract.C_SELECTION);
+        rect(c, ox + 21, oy + 8, 2, 2, UiContract.C_ACCENT);
+        rect(c, ox + 22, oy + 10, 2, 8, UiContract.C_ACCENT);
+        rect(c, ox + 21, oy + 18, 2, 2, UiContract.C_ACCENT);
+        rect(c, ox + 25, oy + 7, 2, 14, UiContract.C_PTT);
+      } else if ("audio".equals(kind)) {
+        rect(c, ox + 8, oy + 4, 12, 3, UiContract.C_INK);
+        rect(c, ox + 5, oy + 7, 3, 3, UiContract.C_INK);
+        rect(c, ox + 20, oy + 7, 3, 3, UiContract.C_INK);
+        rect(c, ox + 4, oy + 10, 3, 8, UiContract.C_INK);
+        rect(c, ox + 21, oy + 10, 3, 8, UiContract.C_INK);
+        rect(c, ox + 3, oy + 14, 5, 8, UiContract.C_PTT);
+        rect(c, ox + 20, oy + 14, 5, 8, UiContract.C_PTT);
+        rect(c, ox + 4, oy + 15, 2, 6, UiContract.C_METER);
+        rect(c, ox + 22, oy + 15, 2, 6, UiContract.C_METER);
+        rect(c, ox + 12, oy + 18, 4, 3, UiContract.C_ACCENT);
+        rect(c, ox + 10, oy + 22, 8, 2, UiContract.C_ACCENT);
+      } else if (entry.icon != null) {
+        entry.icon.setBounds(x + 6, y + 6, x + 38, y + 38);
+        entry.icon.draw(c);
+      } else {
+        rect(c, ox + 4, oy + 4, 9, 9, UiContract.C_ACCENT);
+        rect(c, ox + 15, oy + 4, 9, 9, UiContract.C_INK);
+        rect(c, ox + 4, oy + 15, 9, 9, UiContract.C_INK);
+        rect(c, ox + 15, oy + 15, 9, 9, UiContract.C_PTT);
+      }
+    }
+
     protected void onDraw(Canvas canvas) {
       canvas.save();
       canvas.scale(getWidth() / 160f, getHeight() / 128f);
       canvas.drawColor(UiContract.C_BG);
       statusStrip.draw(canvas);
-      paint.setTextAlign(Paint.Align.LEFT);
       if (!entries.isEmpty()) {
-        int visible = UiContract.MENU_VISIBLE_ROWS;
-        int first = Math.max(0, Math.min(selected - visible + 1, entries.size() - visible));
-        int activeRow = selected - first;
-        paint.setColor(UiContract.C_SELECTION);
-        canvas.drawRect(
-            UiContract.LEFT,
-            UiContract.MENU_TOP + activeRow * UiContract.MENU_ROW_HEIGHT,
-            UiContract.RIGHT,
-            UiContract.MENU_TOP + (activeRow + 1) * UiContract.MENU_ROW_HEIGHT,
-            paint);
-        for (int row = 0; row < visible && first + row < entries.size(); row++) {
+        Entry entry = entries.get(selected);
+        int centerX = 78;
+        int tileSize = UiContract.HOME_TILE_SIZE;
+        int tileX = centerX - tileSize / 2;
+        int tileY = UiContract.HOME_TILE_Y;
+
+        drawHomeTile(canvas, tileX, tileY, tileSize);
+        drawHomeIcon(canvas, entry, tileX, tileY);
+
+        if (entries.size() > 1) {
+          String nextCounter = (selected + 1) + "/" + entries.size();
+          if (!nextCounter.equals(counterText)) {
+            counterText = nextCounter;
+            counterBitmap = PixelArt.numbers(counterText, 2, UiContract.C_ACCENT);
+          }
+          if (counterBitmap != null) {
+            canvas.drawBitmap(counterBitmap, UiContract.RIGHT - counterBitmap.getWidth(), 21, null);
+          }
+          int activeH = 9;
+          int dotH = 3;
+          int gap = 3;
+          int totalH = (entries.size() - 1) * (dotH + gap) + activeH;
+          int dotY = Math.max(37, Math.round(66f - totalH / 2f));
+          for (int idx = 0; idx < entries.size(); idx++) {
+            int h = idx == selected ? activeH : dotH;
+            rect(
+                canvas,
+                152,
+                dotY,
+                3,
+                h,
+                idx == selected ? UiContract.C_SELECTION : UiContract.C_HOME_DOT_IDLE);
+            dotY += h + gap;
+          }
+        }
+
+        paint.setTextAlign(Paint.Align.CENTER);
+        text(
+            canvas,
+            entry.label,
+            centerX,
+            UiContract.HOME_TITLE_Y,
+            UiContract.HOME_TITLE_FONT,
+            UiContract.C_WHITE,
+            140);
+        if (entry.description != null && !entry.description.isEmpty()) {
+          int descSize = UiContract.HOME_DESC_FONT;
+          paint.setTextSize(descSize);
+          while (descSize > 11 && paint.measureText(entry.description) > 142) {
+            descSize -= 1;
+            paint.setTextSize(descSize);
+          }
           text(
               canvas,
-              entries.get(first + row).label,
-              UiContract.MENU_TEXT_X,
-              UiContract.MENU_BASELINE + row * UiContract.MENU_ROW_HEIGHT,
-              UiContract.MENU_FONT,
-              row == activeRow ? UiContract.C_WHITE : UiContract.C_INK,
-              UiContract.RIGHT - UiContract.MENU_TEXT_X - 4);
+              entry.description,
+              centerX,
+              UiContract.HOME_DESC_Y,
+              descSize,
+              UiContract.C_HOME_DESC,
+              142);
         }
-        if (entries.size() > visible) {
-          int trackY = UiContract.MENU_TOP;
-          int trackH = visible * UiContract.MENU_ROW_HEIGHT;
-          int thumbH = Math.max(12, Math.round((float) trackH * visible / entries.size()));
-          int thumbY =
-              trackY + Math.round((float) (trackH - thumbH) * first / (entries.size() - visible));
-          paint.setColor(0xff22302d);
-          canvas.drawRect(156, trackY, 158, trackY + trackH, paint);
-          paint.setColor(0xff7b8d89);
-          canvas.drawRect(156, thumbY, 158, thumbY + thumbH, paint);
-        }
-        paint.setColor(UiContract.C_WAIT_BG);
-        canvas.drawRect(0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.HEIGHT, paint);
-        paint.setColor(UiContract.C_WAIT_EDGE);
-        canvas.drawRect(
-            0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, UiContract.STATUS_FOOTER_TOP + 1, paint);
+
+        paint.setTextAlign(Paint.Align.LEFT);
+        rect(
+            canvas,
+            0,
+            UiContract.STATUS_FOOTER_TOP,
+            UiContract.WIDTH,
+            UiContract.HEIGHT - UiContract.STATUS_FOOTER_TOP,
+            UiContract.C_WAIT_BG);
+        rect(canvas, 0, UiContract.STATUS_FOOTER_TOP, UiContract.WIDTH, 1, UiContract.C_WAIT_EDGE);
         text(
             canvas,
             UiContract.T_MENU_ENTER,
@@ -247,8 +404,13 @@ public final class HomeActivity extends Activity {
             UiContract.STATUS_HINT_FONT,
             UiContract.C_INK,
             UiContract.WIDTH - UiContract.STATUS_HINT_EXIT_X);
-        Entry entry = entries.get(selected);
-        setContentDescription(entry.label + UiContract.T_TEXT_151 + (selected + 1) + UiContract.T_TEXT_149 + entries.size() + UiContract.T_TEXT_148);
+        setContentDescription(
+            entry.label
+                + UiContract.T_TEXT_151
+                + (selected + 1)
+                + UiContract.T_TEXT_149
+                + entries.size()
+                + UiContract.T_TEXT_148);
       }
       volumeStrip.draw(canvas);
       canvas.restore();

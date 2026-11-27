@@ -21,6 +21,8 @@ public final class WifiSessionBridge {
         if(c==null)System.out.println("C NONE");
         else{if(!c.ssid.equals("测试网络_日本語_é") || !c.password.equals("local-test-only") || c.open || c.hidden)throw new AssertionError();c.clear();System.out.println("C OK");}
       }else if(line.equals("SUCCESS")){s.result(WifiProvisionSession.SUCCESS,0x04030201);System.out.println("SUCCESS");}
+      else if(line.startsWith("P ")){s.progress((int)Long.parseLong(line.substring(2),16));System.out.println("P OK");}
+      else if(line.startsWith("FAIL ")){String[] p=line.split(" ");s.result(Integer.parseInt(p[1]),(int)Long.parseLong(p[2],16));System.out.println("FAIL OK");}
       else if(line.equals("D")){s.destroy();System.out.println("D");}
       System.out.flush();
     }

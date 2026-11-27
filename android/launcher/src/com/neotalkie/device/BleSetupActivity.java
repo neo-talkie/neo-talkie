@@ -44,7 +44,9 @@ public final class BleSetupActivity extends Activity {
         }catch(Exception e){code=WifiProvisionSession.ERROR;if(management!=null)management.close();management=null;}
         finally{Arrays.fill(secret,(byte)0);}
       }
+      connector=null;
       session.result(code,ip);
+      if(peer==null){session.destroy();wifiSession=null;}
       show(run,wifiState(code),code==WifiProvisionSession.SUCCESS ? UiContract.T_WIFI_LOCAL : UiContract.T_WIFI_FAILURE_HINT);
     }
   }
@@ -143,12 +145,18 @@ public final class BleSetupActivity extends Activity {
                 Log.i("NeoTalkieBLE","connected");
                 show(run,UiContract.T_BLE_CONNECTED,UiContract.T_BLE_SEND_TEST);
               } else if (state == BluetoothProfile.STATE_DISCONNECTED && device.equals(peer)) {
-                boolean passed=protocol.passed() || wifiSession!=null && wifiSession.state()>=WifiProvisionSession.SUCCESS; peer=null; sessionTicket++; protocol.reset();
-                if(wifiSession!=null)wifiSession.destroy();wifiSession=null;
-                final WifiConnector disconnected=connector;
-                main.post(new Runnable(){public void run(){if(run==generation && disconnected!=null && disconnected==connector){disconnected.cancel();connector=null;} if(peer==null)pairingCode="";}});
-                Log.i("NeoTalkieBLE","disconnected");
-                if (!passed) show(run,UiContract.T_BLE_READY,UiContract.T_BLE_SCAN);
+                boolean connecting=wifiSession!=null && wifiSession.state()==WifiProvisionSession.CONNECTING && connector!=null;
+                boolean passed=protocol.passed() || wifiSession!=null && wifiSession.state()>=WifiProvisionSession.SUCCESS;
+                peer=null; sessionTicket++; protocol.reset();
+                if(!connecting){
+                  if(wifiSession!=null)wifiSession.destroy();wifiSession=null;
+                  final WifiConnector disconnected=connector;
+                  main.post(new Runnable(){public void run(){if(run==generation && disconnected!=null && disconnected==connector){disconnected.cancel();connector=null;} if(peer==null)pairingCode="";}});
+                }else{
+                  main.post(new Runnable(){public void run(){if(peer==null)pairingCode="";}});
+                }
+                Log.i("NeoTalkieBLE","disconnected connecting="+connecting);
+                if (!passed && !connecting) show(run,UiContract.T_BLE_READY,UiContract.T_BLE_SCAN);
               }
             }
           }
@@ -185,9 +193,16 @@ public final class BleSetupActivity extends Activity {
                         return;
                       }
                       show(run,UiContract.T_WIFI_CONNECTING,UiContract.T_WIFI_WAIT);
-                      connector=new WifiConnector(BleSetupActivity.this,new WifiConnector.Listener(){public void finished(int code,int ip){
-                        finishNetwork(run,session,code,ip);
-                      }});connector.start(credentials);
+                      connector=new WifiConnector(BleSetupActivity.this,new WifiConnector.Listener(){
+                        public void progress(int diag){
+                          synchronized(lock){
+                            if(!closed && run==generation && session==wifiSession)session.progress(diag);
+                          }
+                        }
+                        public void finished(int code,int value){
+                          finishNetwork(run,session,code,value);
+                        }
+                      });connector.start(credentials);
                     }
                   }});
                 }
@@ -211,6 +226,8 @@ public final class BleSetupActivity extends Activity {
     } catch (RuntimeException e) { Log.w("NeoTalkieBLE","BLE startup failed: "+e.getClass().getSimpleName()); show(run,UiContract.T_BLE_UNAVAILABLE,UiContract.T_BLE_RETRY); }
   }
   private void prepareWifi(final int run,final BluetoothDevice device){
+    final WifiConnector stale=connector;
+    if(stale!=null){connector=null;main.post(new Runnable(){public void run(){stale.cancel();}});}
     if(wifiSession!=null)wifiSession.destroy();wifiSession=null;pairingCode="";final int ticket=++sessionTicket;
     new Thread(new Runnable(){public void run(){
       try{

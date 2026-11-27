@@ -113,6 +113,7 @@ final class WifiProvisionSession {
     return true;
   }
   synchronized Credentials takeCredentials(){Credentials c=credentials;credentials=null;return c;}
+  synchronized void progress(int diagnostic){if(!destroyed && state==CONNECTING){ip=diagnostic;}}
   synchronized void result(int code,int address){if(!destroyed && state==CONNECTING){state=code;ip=address;}}
   synchronized void destroy(){destroyed=true;pair=null;if(secret!=null)Arrays.fill(secret,(byte)0);secret=null;Arrays.fill(encrypted,(byte)0);Arrays.fill(challenge,(byte)0);Arrays.fill(commitment,(byte)0);if(credentials!=null)credentials.clear();credentials=null;reply=new byte[]{0x7f};}
   static final class Credentials {

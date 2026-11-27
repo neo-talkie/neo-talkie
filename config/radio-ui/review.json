@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Declare INSTALL_PACKAGES and accurately gate Android 5.1 priv-app vs Android 6+ Device Owner silent OTA",
+  "reason": "Keep Wi-Fi connection running after BLE disconnect + BLE diagnostics (no visual UI change)",
   "hashes": {
     "android/audio-link/AndroidManifest.xml": "049be6fb721384625a665c479817abfc01b5c52b6b9374b8db31477f08b6f397",
     "android/audio-link/mx-b5-api/android/bluetooth/BluetoothHeadsetClient.java": "7e8a9ce53c9d7eb3ecf06ceb9d61bda267f16fbcab3a2c986bbdae779a4e69fe",
@@ -33,7 +33,7 @@
     "android/launcher/res/drawable/ic_neotalkie.xml": "a8b3077de8c415547347db71b92b1bbf98be8a2ce5e0ece447bf9555d72fad53",
     "android/launcher/res/xml/ota_device_admin.xml": "cb421177f92d1d4d86a3909f80315396ff317aa801522507661c5ae71ef5ff6c",
     "android/launcher/src/com/neotalkie/device/BleProbeProtocol.java": "4a18c9e5fde43215790c39b53e6b56dcee75c6c8f9414183cbec3cde127041f7",
-    "android/launcher/src/com/neotalkie/device/BleSetupActivity.java": "caf87bbabfde7527cf272f426d73cadb2733e58fdce6d219192010fe75796945",
+    "android/launcher/src/com/neotalkie/device/BleSetupActivity.java": "7e17ec190ec389e11a23226b9199244e125757b89207ac5ff0ce2385a6619939",
     "android/launcher/src/com/neotalkie/device/HomeActivity.java": "bdda3104f53f5688f945f2ae41d6b6f95a7a31dfd9f70d697e312881a4325f07",
     "android/launcher/src/com/neotalkie/device/LanHandshake.java": "e487a83ba7992811f60aa0166bd288900608fee4830ed96ecea3402f6ac305ea",
     "android/launcher/src/com/neotalkie/device/ManagedApp.java": "f3c49ce629a1165432e341991dbc0fb80e0495b01c217321d8a848bc34de064e",
@@ -45,8 +45,8 @@
     "android/launcher/src/com/neotalkie/device/OtaUpdater.java": "8f06c538f2581be4d92d8619e57a180ceb19a54d998d2af3f232cb0f8b76fc04",
     "android/launcher/src/com/neotalkie/device/PttStateProvider.java": "2061ece23fb55140353d10169aa248c57e56c14d7b9385d79b3caa75d689cff1",
     "android/launcher/src/com/neotalkie/device/StatusActivity.java": "6aa94e3896a0296576ea5a328d372f07ccbc574977dc4d6a56b607587670500c",
-    "android/launcher/src/com/neotalkie/device/WifiConnector.java": "b278a0a80b1e7801534b22edf05b8dc85f7af4f1d097c9b2dadbf6b8c175e07c",
-    "android/launcher/src/com/neotalkie/device/WifiProvisionSession.java": "789404e2c8389a637c3c3cdc3e567829d43e1b4cd2e077198d1ce8debc8784f4",
+    "android/launcher/src/com/neotalkie/device/WifiConnector.java": "33fa8a52511944900dc87b647512bf6107e43dca3f66856d0222b7fdc59f7b07",
+    "android/launcher/src/com/neotalkie/device/WifiProvisionSession.java": "88ccd4cec5507393202651fe9f37ff9b15df6ff44114955397526c06846cc3d1",
     "android/talk/AndroidManifest.xml": "ecc92237b4e0983d9a19a18e9d54d89236bd1f2ddeb6838cb8d7c8a4bf12097e",
     "android/talk/res/drawable/ic_neotalkie.xml": "a8b3077de8c415547347db71b92b1bbf98be8a2ce5e0ece447bf9555d72fad53",
     "android/talk/src/com/neotalkie/device/CompanionConfig.java": "bd1ba375663b91b2748350b7c074f29e4649518bdf9d00fb1f412abfe22d1b5d",

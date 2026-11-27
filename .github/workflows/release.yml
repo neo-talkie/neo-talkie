@@ -121,6 +121,37 @@ jobs:
             --notes "${NOTES}" \
             --latest
 
+      - name: Deploy OTA release to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          NOTES: ${{ steps.meta.outputs.notes }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare Pages secrets not configured; skipping Pages deploy."
+            exit 0
+          fi
+          STAGE="$RUNNER_TEMP/cf-pages"
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE/ota/latest" "$STAGE/ota/${TAG}"
+          cp "$RUNNER_TEMP/release-assets/"neotalkie-*.apk "$STAGE/ota/${TAG}/"
+          python3 android/scripts/release_manifest.py \
+            --tag "$TAG" \
+            --version "$VERSION" \
+            --repo "$REPO" \
+            --url-base "https://neotalkie-ota.pages.dev/ota/${TAG}" \
+            --notes "$NOTES" \
+            --output "$STAGE/ota/${TAG}/ota-manifest.json"
+          cp "$STAGE/ota/${TAG}/ota-manifest.json" "$STAGE/ota/latest/ota-manifest.json"
+          cat > "$STAGE/_headers" <<'EOF'
+          /ota/latest/*
+            Cache-Control: no-cache, must-revalidate
+          EOF
+          npx --yes wrangler@4 pages deploy "$STAGE" --project-name neotalkie-ota --branch main --commit-dirty=true
+
       - name: Clean up release keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/release.keystore"

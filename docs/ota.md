@@ -5,11 +5,12 @@ NeoTalkie 在桌面的 **「设备设置 → 软件更新」** 中提供整机�
 ## 整体机制
 
 1. **统一发布清单（`ota-manifest.json`）**
-   - `main` 分支每次推送后，由 [`.github/workflows/release.yml`](../.github/workflows/release.yml) 自动构建所有应用 APK，并由 [`android/scripts/release_manifest.py`](../android/scripts/release_manifest.py) 生成 `ota-manifest.json`（`schema: "neotalkie-ota/v1"`）发布至 **GitHub Releases**（`latest`）。
+   - `main` 分支每次推送后，由 [`.github/workflows/release.yml`](../.github/workflows/release.yml) 自动构建所有应用 APK，并由 [`android/scripts/release_manifest.py`](../android/scripts/release_manifest.py) 生成 `ota-manifest.json`（`schema: "neotalkie-ota/v1"`）同步发布至 **Cloudflare Pages**（免费不限出口流量）与 **GitHub Releases**（`latest`）。
    - 清单包含全部应用的 `packageName`、`versionCode`、`versionName`、`url`、`sha256`、`size` 和 `self` 标记。未来在 `android/scripts/build.py` 的 `APPS` 列表中新增应用时，流水线会自动打包并纳入清单，手台侧也会自动识别并安装新应用。
-   - 手台按以下二级容灾顺序自动检查更新（如主地址超时、DNS 失败或 404，自动回退到下一个）：
-     1. 自有域名入口：`https://ota.neo-talkie.com/v1/ota-manifest.json`（后续绑定 Cloudflare Pages / R2 或 302 转发）
-     2. GitHub Releases 兜底：`https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json`
+   - 手台按以下三级容灾顺序自动检查更新（如任一地址超时、DNS 失败或 404，自动回退到下一个）：
+     1. Cloudflare Pages 直连：`https://neotalkie-ota.pages.dev/ota/latest/ota-manifest.json`（免流量费、全球边缘节点）
+     2. 自有域名备用入口：`https://ota.neo-talkie.com/v1/ota-manifest.json`（注册后通过 Cloudflare 自定义域或 302 转发）
+     3. GitHub Releases 兜底：`https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json`
 
 2. **Android 5.1.1 HTTPS 兼容与完整性校验**
    - `mx_b5`（Android 5.1.1）系统根证书包含 `github.com` 所用的 `USERTrust ECC`，但不包含 GitHub Release 文件跳转域名（`release-assets.githubusercontent.com` / `objects.githubusercontent.com`）所用的 `ISRG Root X1`。

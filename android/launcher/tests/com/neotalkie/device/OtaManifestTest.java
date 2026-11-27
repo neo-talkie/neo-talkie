@@ -132,11 +132,12 @@ public final class OtaManifestTest {
 
     // 7. Default multi-endpoint fallback chain and custom override.
     List<String> defaults = OtaManifest.manifestUrls("");
-    check(defaults.size() == 2, "2 default OTA endpoints");
+    check(defaults.size() == 3, "3 default OTA endpoints");
+    check(defaults.get(0).equals(OtaManifest.PRIMARY_MANIFEST_URL), "Cloudflare Pages primary first");
     check(
-        "https://ota.neo-talkie.com/v1/ota-manifest.json".equals(defaults.get(0)),
-        "owned domain primary first");
-    check(defaults.get(1).equals(OtaManifest.GITHUB_FALLBACK_MANIFEST_URL), "GitHub fallback second");
+        "https://ota.neo-talkie.com/v1/ota-manifest.json".equals(defaults.get(1)),
+        "owned domain fallback second");
+    check(defaults.get(2).equals(OtaManifest.GITHUB_FALLBACK_MANIFEST_URL), "GitHub fallback last");
     List<String> custom = OtaManifest.manifestUrls("https://custom.example.com/ota.json");
     check(custom.size() == 1 && "https://custom.example.com/ota.json".equals(custom.get(0)), "custom override");
 

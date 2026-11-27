@@ -7,21 +7,18 @@ import java.util.*;
 /** Pure-Java OTA release manifest parser, update planner, and URL resolver (host-testable). */
 final class OtaManifest {
   static final String SCHEMA = "neotalkie-ota/v1";
-  static final String PRIMARY_MANIFEST_URL =
-      "https://neotalkie-ota-1706037644303620.oss-cn-shanghai.aliyuncs.com/ota/latest/ota-manifest.json";
   static final String DOMAIN_FALLBACK_MANIFEST_URL =
       "https://ota.neo-talkie.com/v1/ota-manifest.json";
   static final String GITHUB_FALLBACK_MANIFEST_URL =
       "https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json";
-  static final String DEFAULT_MANIFEST_URL = PRIMARY_MANIFEST_URL;
+  static final String DEFAULT_MANIFEST_URL = DOMAIN_FALLBACK_MANIFEST_URL;
 
   static List<String> manifestUrls(String customUrl) {
     if (customUrl != null && !customUrl.trim().isEmpty()) {
       return Collections.singletonList(customUrl.trim());
     }
     return Collections.unmodifiableList(
-        Arrays.asList(
-            PRIMARY_MANIFEST_URL, DOMAIN_FALLBACK_MANIFEST_URL, GITHUB_FALLBACK_MANIFEST_URL));
+        Arrays.asList(DOMAIN_FALLBACK_MANIFEST_URL, GITHUB_FALLBACK_MANIFEST_URL));
   }
 
   static final class PackageItem {

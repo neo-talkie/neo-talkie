@@ -8,7 +8,7 @@ import java.util.*;
 final class OtaManifest {
   static final String SCHEMA = "neotalkie-ota/v1";
   static final String PRIMARY_MANIFEST_URL =
-      "https://neotalkie.com/ota/latest/ota-manifest.json";
+      "https://ota.neotalkie.com/latest/ota-manifest.json";
   static final String GITHUB_FALLBACK_MANIFEST_URL =
       "https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json";
   static final String DEFAULT_MANIFEST_URL = PRIMARY_MANIFEST_URL;

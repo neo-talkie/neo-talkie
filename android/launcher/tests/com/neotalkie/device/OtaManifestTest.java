@@ -134,7 +134,7 @@ public final class OtaManifestTest {
     List<String> defaults = OtaManifest.manifestUrls("");
     check(defaults.size() == 2, "2 default OTA endpoints");
     check(
-        "https://neotalkie.com/ota/latest/ota-manifest.json".equals(defaults.get(0)),
+        "https://ota.neotalkie.com/latest/ota-manifest.json".equals(defaults.get(0)),
         "custom Cloudflare domain primary first");
     check(defaults.get(1).equals(OtaManifest.GITHUB_FALLBACK_MANIFEST_URL), "GitHub fallback second");
     List<String> custom = OtaManifest.manifestUrls("https://custom.example.com/ota.json");

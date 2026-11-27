@@ -5,10 +5,10 @@ NeoTalkie 在桌面的 **「设备设置 → 软件更新」** 中提供整机�
 ## 整体机制
 
 1. **统一发布清单（`ota-manifest.json`）**
-   - `main` 分支每次推送后，由 [`.github/workflows/release.yml`](../.github/workflows/release.yml) 自动构建所有应用 APK，并由 [`android/scripts/release_manifest.py`](../android/scripts/release_manifest.py) 生成 `ota-manifest.json`（`schema: "neotalkie-ota/v1"`）同步发布至 **Cloudflare Pages（绑定自有域名 `neotalkie.com`）** 与 **GitHub Releases**（`latest`）。
+   - `main` 分支每次推送后，由 [`.github/workflows/release.yml`](../.github/workflows/release.yml) 自动构建所有应用 APK，并由 [`android/scripts/release_manifest.py`](../android/scripts/release_manifest.py) 生成 `ota-manifest.json`（`schema: "neotalkie-ota/v1"`）同步发布至 **Cloudflare Pages（绑定自有域名 `ota.neotalkie.com`）** 与 **GitHub Releases**（`latest`）。
    - 清单包含全部应用的 `packageName`、`versionCode`、`versionName`、`url`、`sha256`、`size` 和 `self` 标记。未来在 `android/scripts/build.py` 的 `APPS` 列表中新增应用时，流水线会自动打包并纳入清单，手台侧也会自动识别并安装新应用。
    - 手台按以下两层容灾顺序自动检查更新（主地址超时、DNS 失败或 404 时自动回退到兜底地址）：
-     1. Cloudflare 自有域名主地址：`https://neotalkie.com/ota/latest/ota-manifest.json`（免费不限出口流量）
+     1. Cloudflare 自有域名主地址：`https://ota.neotalkie.com/latest/ota-manifest.json`（免费不限出口流量）
      2. GitHub Releases 兜底：`https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json`
 
 2. **Android 5.1.1 HTTPS 兼容与完整性校验**

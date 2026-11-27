@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Show current version instead of generic retry hint on OTA error screen",
+  "reason": "Add Aliyun OSS primary and ota.neo-talkie.com fallback OTA endpoints (no visual UI change)",
   "hashes": {
     "android/audio-link/AndroidManifest.xml": "049be6fb721384625a665c479817abfc01b5c52b6b9374b8db31477f08b6f397",
     "android/audio-link/mx-b5-api/android/bluetooth/BluetoothHeadsetClient.java": "7e8a9ce53c9d7eb3ecf06ceb9d61bda267f16fbcab3a2c986bbdae779a4e69fe",
@@ -40,9 +40,9 @@
     "android/launcher/src/com/neotalkie/device/ManagementEndpoint.java": "60d94c775773a3b7c768a20618b9a6a563a09ae687e294b7e0457a7a30bea3d6",
     "android/launcher/src/com/neotalkie/device/ManagementService.java": "d871a5110a56149c532a86a8a3a89e72fee979cb2795381a5e7b45617061b596",
     "android/launcher/src/com/neotalkie/device/OtaAdminReceiver.java": "f5c7d1bd2cb20c89d7ff95115f83f86527450b23aa4a07c5a3672dbf546c8510",
-    "android/launcher/src/com/neotalkie/device/OtaManifest.java": "a6c2f5091a97e6096b37593bbef73d9733940076880bac0464c3dacc69ca57d0",
+    "android/launcher/src/com/neotalkie/device/OtaManifest.java": "13e81bda6c7c3467a3c0b8fc19612ec4fa04d658082216eae7a9051abd7904f7",
     "android/launcher/src/com/neotalkie/device/OtaTls.java": "cbf963646e27770e01a2e66130876f69ed7be4c71a7e3ca717b77ad324edae87",
-    "android/launcher/src/com/neotalkie/device/OtaUpdater.java": "8f06c538f2581be4d92d8619e57a180ceb19a54d998d2af3f232cb0f8b76fc04",
+    "android/launcher/src/com/neotalkie/device/OtaUpdater.java": "71841859a5d293ebcd1f5fb302b6a681ae48d1cf6e2468b36edca1b2d0dc877c",
     "android/launcher/src/com/neotalkie/device/PttStateProvider.java": "2061ece23fb55140353d10169aa248c57e56c14d7b9385d79b3caa75d689cff1",
     "android/launcher/src/com/neotalkie/device/StatusActivity.java": "269cdbdac0c15cffedc7aad668a52d98e96b4b9eb85aaf83dce8674b0d9900aa",
     "android/launcher/src/com/neotalkie/device/WifiConnector.java": "33fa8a52511944900dc87b647512bf6107e43dca3f66856d0222b7fdc59f7b07",

@@ -34,8 +34,8 @@ final class OtaUpdater {
   private static final String KEY_LAST_UPDATED_TAG = "lastUpdatedTag";
   private static final String KEY_PENDING_SELF_TAG = "pendingSelfTag";
   private static final String ACTION_INSTALL_RESULT = "com.neotalkie.launcher.OTA_INSTALL_RESULT";
-  private static final int CONNECT_TIMEOUT_MS = 12000;
-  private static final int READ_TIMEOUT_MS = 25000;
+  private static final int CONNECT_TIMEOUT_MS = 8000;
+  private static final int READ_TIMEOUT_MS = 20000;
   private static final int INSTALL_TIMEOUT_SEC = 120;
   private static final int MAX_MANIFEST_BYTES = 256 * 1024;
   private static final AtomicInteger NEXT_REQ = new AtomicInteger(100);
@@ -56,6 +56,7 @@ final class OtaUpdater {
   private volatile boolean cancelled;
   private volatile boolean installing;
   private volatile HttpURLConnection activeConn;
+  private volatile String resolvedManifestUrl = OtaManifest.DEFAULT_MANIFEST_URL;
 
   OtaUpdater(Context context) {
     this.appContext = context.getApplicationContext();
@@ -146,38 +147,62 @@ final class OtaUpdater {
       cb.onError(UiContract.T_OFFLINE, UiContract.T_TEXT_130);
       return;
     }
-    HttpURLConnection conn = null;
-    try {
-      String url = manifestUrl(appContext);
-      conn = OtaTls.openGet(url, userAgent(), CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
-      activeConn = conn;
-      int code = conn.getResponseCode();
-      if (code == HttpURLConnection.HTTP_NOT_FOUND) {
-        cb.onError(UiContract.T_OTA_NO_RELEASE, UiContract.T_TEXT_129);
-        return;
-      }
-      if (code < 200 || code >= 300) {
-        cb.onError(UiContract.T_TEXT_108, "HTTP " + code);
-        return;
-      }
-      String json = readSmallText(conn.getInputStream());
+    String custom = prefs(appContext).getString(KEY_MANIFEST_URL, "");
+    List<String> candidates = OtaManifest.manifestUrls(custom);
+    Exception lastError = null;
+    int lastHttpCode = 0;
+    boolean sawNotFound = false;
+
+    for (String url : candidates) {
       if (cancelled) return;
-      OtaManifest.Release release = OtaManifest.parse(json);
-      Map<String, Integer> installed = readInstalledVersions(release);
-      OtaManifest.UpdatePlan plan =
-          OtaManifest.plan(release, installed, appContext.getPackageName());
-      if (!plan.hasUpdates()) {
-        cb.onUpToDate(release, release.packages.size());
-      } else {
-        cb.onAvailable(plan, OtaAdminReceiver.isSilentInstallReady(appContext));
+      HttpURLConnection conn = null;
+      try {
+        conn = OtaTls.openGet(url, userAgent(), CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+        activeConn = conn;
+        int code = conn.getResponseCode();
+        if (code == HttpURLConnection.HTTP_NOT_FOUND) {
+          sawNotFound = true;
+          lastHttpCode = code;
+          Log.w(TAG, "OTA manifest 404 at " + url);
+          continue;
+        }
+        if (code < 200 || code >= 300) {
+          lastHttpCode = code;
+          Log.w(TAG, "OTA manifest HTTP " + code + " at " + url);
+          continue;
+        }
+        String json = readSmallText(conn.getInputStream());
+        if (cancelled) return;
+        OtaManifest.Release release = OtaManifest.parse(json);
+        resolvedManifestUrl = conn.getURL() != null ? conn.getURL().toString() : url;
+        Map<String, Integer> installed = readInstalledVersions(release);
+        OtaManifest.UpdatePlan plan =
+            OtaManifest.plan(release, installed, appContext.getPackageName());
+        if (!plan.hasUpdates()) {
+          cb.onUpToDate(release, release.packages.size());
+        } else {
+          cb.onAvailable(plan, OtaAdminReceiver.isSilentInstallReady(appContext));
+        }
+        return;
+      } catch (Exception e) {
+        if (cancelled) return;
+        lastError = e;
+        Log.w(TAG, "OTA check failed at " + url, e);
+      } finally {
+        activeConn = null;
+        if (conn != null) conn.disconnect();
       }
-    } catch (Exception e) {
-      if (cancelled) return;
-      Log.w(TAG, "OTA check failed", e);
-      reportNetworkError(cb, e);
-    } finally {
-      activeConn = null;
-      if (conn != null) conn.disconnect();
+    }
+
+    if (cancelled) return;
+    if (sawNotFound && lastError == null && lastHttpCode == HttpURLConnection.HTTP_NOT_FOUND) {
+      cb.onError(UiContract.T_OTA_NO_RELEASE, UiContract.T_TEXT_129);
+    } else if (lastHttpCode >= 400 && lastError == null) {
+      cb.onError(UiContract.T_TEXT_108, "HTTP " + lastHttpCode);
+    } else if (lastError != null) {
+      reportNetworkError(cb, lastError);
+    } else {
+      cb.onError(UiContract.T_OTA_NO_RELEASE, UiContract.T_TEXT_129);
     }
   }
 
@@ -209,7 +234,10 @@ final class OtaUpdater {
       cb.onError(UiContract.T_OTA_STORAGE_ERROR, UiContract.T_TEXT_129);
       return;
     }
-    String baseManifestUrl = manifestUrl(appContext);
+    String baseManifestUrl =
+        resolvedManifestUrl != null && !resolvedManifestUrl.isEmpty()
+            ? resolvedManifestUrl
+            : manifestUrl(appContext);
     String mirror = mirrorPrefix(appContext);
     ArrayList<File> downloadedFiles = new ArrayList<>(plan.updates.size());
     long totalBytes = Math.max(1L, plan.totalBytes);

@@ -130,6 +130,17 @@ public final class OtaManifestTest {
     failParse(
         "{\"schema\":\"neotalkie-ota/v1\",\"releaseTag\":\"v1\",\"packages\":[{\"packageName\":\"a\",\"versionCode\":1,\"url\":\"https://x\",\"sha256\":\"short\",\"size\":1}]}");
 
+    // 7. Default multi-endpoint fallback chain and custom override.
+    List<String> defaults = OtaManifest.manifestUrls("");
+    check(defaults.size() == 3, "3 default OTA endpoints");
+    check(defaults.get(0).equals(OtaManifest.PRIMARY_MANIFEST_URL), "OSS primary first");
+    check(
+        "https://ota.neo-talkie.com/v1/ota-manifest.json".equals(defaults.get(1)),
+        "owned domain fallback second");
+    check(defaults.get(2).equals(OtaManifest.GITHUB_FALLBACK_MANIFEST_URL), "GitHub fallback last");
+    List<String> custom = OtaManifest.manifestUrls("https://custom.example.com/ota.json");
+    check(custom.size() == 1 && "https://custom.example.com/ota.json".equals(custom.get(0)), "custom override");
+
     System.out.println("OTA manifest parsing, self-last ordering, URL rewrite and progress passed");
   }
 }

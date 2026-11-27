@@ -121,6 +121,63 @@ jobs:
             --notes "${NOTES}" \
             --latest
 
+      - name: Sync OTA release to Aliyun OSS
+        env:
+          AK_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
+          AK_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+          BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+          ENDPOINT: ${{ secrets.ALIYUN_OSS_ENDPOINT }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          NOTES: ${{ steps.meta.outputs.notes }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$AK_ID" ] || [ -z "$AK_SECRET" ] || [ -z "$BUCKET" ] || [ -z "$ENDPOINT" ]; then
+            echo "Aliyun OSS secrets not configured; skipping OSS sync."
+            exit 0
+          fi
+          OSS_BASE="https://${BUCKET}.${ENDPOINT}/ota/${TAG}"
+          python3 android/scripts/release_manifest.py \
+            --tag "$TAG" \
+            --version "$VERSION" \
+            --repo "$REPO" \
+            --url-base "$OSS_BASE" \
+            --notes "$NOTES" \
+            --output "$RUNNER_TEMP/oss-manifest.json"
+          python3 - <<'PY'
+          import base64, datetime, hashlib, hmac, os, pathlib, urllib.request
+
+          ak_id = os.environ['AK_ID']
+          ak_secret = os.environ['AK_SECRET'].encode('utf-8')
+          bucket = os.environ['BUCKET']
+          endpoint = os.environ['ENDPOINT']
+          tag = os.environ['TAG']
+          temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+
+          def put_object(key, data, content_type, cache_control=''):
+              date = datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')
+              md5 = base64.b64encode(hashlib.md5(data).digest()).decode()
+              canonical = f"PUT\n{md5}\n{content_type}\n{date}\n/{bucket}/{key}"
+              sig = base64.b64encode(hmac.new(ak_secret, canonical.encode('utf-8'), hashlib.sha1).digest()).decode()
+              headers = {
+                  'Date': date,
+                  'Content-MD5': md5,
+                  'Content-Type': content_type,
+                  'Authorization': f'OSS {ak_id}:{sig}',
+              }
+              if cache_control:
+                  headers['Cache-Control'] = cache_control
+              req = urllib.request.Request(f"https://{bucket}.{endpoint}/{key}", data=data, headers=headers, method='PUT')
+              with urllib.request.urlopen(req, timeout=60) as resp:
+                  print(f"Uploaded {key}: HTTP {resp.status} ({len(data)} bytes)")
+
+          for apk in sorted((temp / 'release-assets').glob('neotalkie-*.apk')):
+              put_object(f"ota/{tag}/{apk.name}", apk.read_bytes(), 'application/vnd.android.package-archive')
+          manifest_bytes = (temp / 'oss-manifest.json').read_bytes()
+          put_object(f"ota/{tag}/ota-manifest.json", manifest_bytes, 'application/json; charset=utf-8')
+          put_object("ota/latest/ota-manifest.json", manifest_bytes, 'application/json; charset=utf-8', cache_control='no-cache')
+          PY
+
       - name: Clean up release keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/release.keystore"

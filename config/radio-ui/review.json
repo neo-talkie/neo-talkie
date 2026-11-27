@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Keep Wi-Fi connection running after BLE disconnect + BLE diagnostics (no visual UI change)",
+  "reason": "Show current version instead of generic retry hint on OTA error screen",
   "hashes": {
     "android/audio-link/AndroidManifest.xml": "049be6fb721384625a665c479817abfc01b5c52b6b9374b8db31477f08b6f397",
     "android/audio-link/mx-b5-api/android/bluetooth/BluetoothHeadsetClient.java": "7e8a9ce53c9d7eb3ecf06ceb9d61bda267f16fbcab3a2c986bbdae779a4e69fe",
@@ -44,7 +44,7 @@
     "android/launcher/src/com/neotalkie/device/OtaTls.java": "cbf963646e27770e01a2e66130876f69ed7be4c71a7e3ca717b77ad324edae87",
     "android/launcher/src/com/neotalkie/device/OtaUpdater.java": "8f06c538f2581be4d92d8619e57a180ceb19a54d998d2af3f232cb0f8b76fc04",
     "android/launcher/src/com/neotalkie/device/PttStateProvider.java": "2061ece23fb55140353d10169aa248c57e56c14d7b9385d79b3caa75d689cff1",
-    "android/launcher/src/com/neotalkie/device/StatusActivity.java": "6aa94e3896a0296576ea5a328d372f07ccbc574977dc4d6a56b607587670500c",
+    "android/launcher/src/com/neotalkie/device/StatusActivity.java": "269cdbdac0c15cffedc7aad668a52d98e96b4b9eb85aaf83dce8674b0d9900aa",
     "android/launcher/src/com/neotalkie/device/WifiConnector.java": "33fa8a52511944900dc87b647512bf6107e43dca3f66856d0222b7fdc59f7b07",
     "android/launcher/src/com/neotalkie/device/WifiProvisionSession.java": "88ccd4cec5507393202651fe9f37ff9b15df6ff44114955397526c06846cc3d1",
     "android/talk/AndroidManifest.xml": "ecc92237b4e0983d9a19a18e9d54d89236bd1f2ddeb6838cb8d7c8a4bf12097e",

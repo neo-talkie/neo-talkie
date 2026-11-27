@@ -227,12 +227,7 @@ public final class StatusActivity extends Activity {
                 () -> {
                   if (run != otaRunId) return;
                   main.removeCallbacks(otaPulse);
-                  otaState = OTA_ERROR;
-                  otaLine1 = headline;
-                  otaLine2 = detail;
-                  otaLine3 = "";
-                  updateKeepAwake();
-                  panel.invalidate();
+                  showOtaError(headline, detail);
                 });
           }
         });
@@ -285,13 +280,8 @@ public final class StatusActivity extends Activity {
             main.post(
                 () -> {
                   if (run != otaRunId) return;
-                  otaState = OTA_ERROR;
                   otaInstalling = false;
-                  otaLine1 = headline;
-                  otaLine2 = detail;
-                  otaLine3 = "";
-                  updateKeepAwake();
-                  panel.invalidate();
+                  showOtaError(headline, detail);
                 });
           }
         });
@@ -311,6 +301,32 @@ public final class StatusActivity extends Activity {
     otaLine3 = UiContract.T_OTA_COMPLETED_HINT;
     updateKeepAwake();
     panel.invalidate();
+  }
+
+  private void showOtaError(String headline, String detail) {
+    String current = currentVersionText();
+    otaState = OTA_ERROR;
+    otaLine1 = headline;
+    if (detail == null || detail.isEmpty() || UiContract.T_TEXT_129.equals(detail)) {
+      otaLine2 = current;
+      otaLine3 = "";
+    } else {
+      otaLine2 = detail;
+      otaLine3 = current;
+    }
+    updateKeepAwake();
+    panel.invalidate();
+  }
+
+  private String currentVersionText() {
+    try {
+      String ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+      if (ver != null && !ver.trim().isEmpty()) {
+        return UiContract.T_OTA_CURRENT_PREFIX + versionLabel(ver.trim());
+      }
+    } catch (Exception ignored) {
+    }
+    return "";
   }
 
   private static String versionLabel(String version) {

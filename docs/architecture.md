@@ -2,7 +2,7 @@
 
 核心功能由两个 Android 应用提供：`com.neotalkie.launcher` 桌面和 `com.neotalkie.talk` 对讲。两 APK 使用相同开发签名，独立进程、独立私有文件与生命周期。共享 Java 命名空间 `com.neotalkie.device` 是代码组织方式，不代表共享 Android UID 或数据。禁止使用 sharedUserId。
 
-桌面持有设备状态和 HOME 入口，通过 Android 系统设置首页访问 Wi-Fi 及其他系统配置，或使用手机配置。对讲持有语音配置、麦克风轮次和上下文。桌面不依赖语音密钥，不包含 OkHttp/Okio 或模型代码，也不申请麦克风权限。桌面固定入口为对讲、设备设置、系统设置和手机配置。手机配置提供前台五分钟 BLE 会话，承接物理授权、加密配置和 Wi-Fi 连接状态。对讲菜单中的系统状态通过明确的组件目标进入桌面；语音连通检查留在对讲 APK。公共 UI/电源/音量代码从 `android/common/` 编译进两个 APK，不作为独立安装包。
+桌面持有设备状态和 HOME 入口，通过 Android 系统设置首页访问 Wi-Fi 及其他系统配置，或使用手机配置。对讲持有语音配置、麦克风轮次和上下文。桌面不依赖语音密钥，不包含 OkHttp/Okio 或模型代码，也不申请麦克风权限。桌面固定入口为对讲、设备设置、系统设置和手机配置。设备设置提供网络状态、系统状态以及「软件更新」全量 OTA（从 GitHub Releases 读取 `ota-manifest.json`，内置 `ISRG Root X1` 根证书并校验 SHA-256，在具备静默安装权限的设备上经 `PackageInstaller` 无弹窗升级全部应用——Android 5.1 需预置到 `/system/priv-app/` 获取 `INSTALL_PACKAGES`，Android 6.0+ 可通过 `dpm set-device-owner` 激活——且始终最后安装桌面自身；见[OTA 静默更新与发布流水线](ota.md)）。手机配置提供前台五分钟 BLE 会话，承接物理授权、加密配置和 Wi-Fi 连接状态。对讲菜单中的系统状态通过明确的组件目标进入桌面；语音连通检查留在对讲 APK。公共 UI/电源/音量代码从 `android/common/` 编译进两个 APK，不作为独立安装包。
 
 ## 工程与依赖边界
 

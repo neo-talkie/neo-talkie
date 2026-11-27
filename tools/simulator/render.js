@@ -539,6 +539,77 @@ export function renderScreen(canvas, s, now = 0, footerOpacity) {
       COLORS.ink,
       L.WIDTH - L.STATUS_HINT_EXIT_X,
     );
+  } else if (s.view === "ota") {
+    const heading =
+      s.otaStatus === "available"
+        ? T.ota_found_title
+        : s.otaStatus === "updating"
+          ? T.ota_updating_title
+          : s.otaStatus === "completed"
+            ? T.ota_completed_title
+            : s.otaStatus === "error"
+              ? T.ota_failed_title
+              : T.ota_update;
+    text(c, heading, L.STATUS_TITLE_X, L.STATUS_TITLE_Y, L.STATUS_TITLE_FONT, C.PAGE_TITLE, 144);
+    if (s.otaStatus === "updating") {
+      const stageText = s.otaStage || T.ota_downloading;
+      const detailText = `${s.otaProgress}% · ${s.otaDetail || s.otaSize}`;
+      text(c, stageText, L.STATUS_TITLE_X, 64, 14, s.otaInstalling ? COLORS.teal : COLORS.orangeText, 144);
+      text(c, detailText, L.STATUS_TITLE_X, 80, 12, COLORS.ink, 144);
+      rect(c, 8, 87, 144, 10, C.METER_BG);
+      const fill = Math.round((144 * s.otaProgress) / 100);
+      if (fill > 0) rect(c, 8, 87, fill, 10, s.otaInstalling ? COLORS.teal : COLORS.orange);
+    } else if (s.otaStatus === "checking") {
+      text(c, T.ota_checking, L.STATUS_TITLE_X, 65, 14, COLORS.orangeText, 144);
+      text(c, T.ota_github_hint, L.STATUS_TITLE_X, 83, 13, COLORS.ink, 144);
+      rect(c, 8, 90, 144, 6, C.METER_BG);
+      rect(c, 36, 90, 42, 6, COLORS.orangeText);
+    } else {
+      let line1 = "";
+      let line2 = "";
+      let line3 = "";
+      let color1 = COLORS.orangeText;
+      if (s.otaStatus === "upToDate") {
+        line1 = T.ota_up_to_date;
+        line2 = T.ota_current_prefix + s.otaVersion;
+        line3 = `${s.otaCount}${T.ota_all_latest_suffix}`;
+        color1 = COLORS.teal;
+      } else if (s.otaStatus === "available") {
+        line1 = s.otaVersion;
+        line2 = `${T.ota_apps_prefix}${s.otaCount}${T.ota_apps_suffix} · ${s.otaSize}`;
+        line3 = T.ota_confirm_hint;
+      } else if (s.otaStatus === "completed") {
+        line1 = T.ota_completed_body;
+        line2 = T.ota_current_prefix + s.otaVersion;
+        line3 = T.ota_completed_hint;
+        color1 = COLORS.teal;
+      } else {
+        line1 = s.otaStage || T.ota_install_failed;
+        line2 = s.otaDetail || T.text_129;
+      }
+      text(c, line1, L.STATUS_TITLE_X, 65, 14, color1, 144);
+      text(c, line2, L.STATUS_TITLE_X, 83, 14, COLORS.ink, 144);
+      if (line3) text(c, line3, L.STATUS_TITLE_X, 99, 12, "#9eb0aa", 144);
+    }
+    rect(c, 0, L.STATUS_FOOTER_TOP, L.WIDTH, L.HEIGHT - L.STATUS_FOOTER_TOP, C.WAIT_BG);
+    rect(c, 0, L.STATUS_FOOTER_TOP, L.WIDTH, 1, C.WAIT_EDGE);
+    if (s.otaStatus === "updating" && s.otaInstalling) {
+      text(c, T.ota_keep_power, L.STATUS_HINT_X, L.STATUS_FOOTER_Y, L.STATUS_HINT_FONT, COLORS.orangeText, 144);
+    } else {
+      const leftHint =
+        s.otaStatus === "available"
+          ? T.ota_update_key
+          : s.otaStatus === "upToDate"
+            ? T.ota_recheck_key
+            : s.otaStatus === "error"
+              ? T.ble_retry_key
+              : "";
+      if (leftHint)
+        text(c, leftHint, L.STATUS_HINT_X, L.STATUS_FOOTER_Y, L.STATUS_HINT_FONT, COLORS.ink, L.STATUS_HINT_EXIT_X - L.STATUS_HINT_X);
+      const rightHint = s.otaStatus === "updating" ? T.ble_cancel_key : T.status_exit_key;
+      font(c, L.STATUS_HINT_FONT);
+      text(c, rightHint, L.RIGHT - c.measureText(rightHint).width, L.STATUS_FOOTER_Y, L.STATUS_HINT_FONT, COLORS.ink, L.WIDTH - L.STATUS_HINT_EXIT_X);
+    }
   } else if (s.view === "external") {
     text(c, "系统应用", 8, 49, 18, COLORS.white);
     text(c, "不模拟厂家系统界面", 8, 73, 14, COLORS.ink);

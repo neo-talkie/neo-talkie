@@ -2,7 +2,7 @@
 
 由 `node tools/simulator/scripts/catalog.mjs` 从预设生成。编号与总览 PNG、JSON 参数一致；稳定 ID 用于跨版本对照。
 
-当前基准：Android 0.2.3。共 177 个命名场景；这是应用页面和代表性边界覆盖，不是所有数值组合，也不覆盖厂家 ROM 界面。参数和使用方法见 [模拟器文档](radio-simulator.md)。
+当前基准：Android 0.2.3。共 185 个命名场景；这是应用页面和代表性边界覆盖，不是所有数值组合，也不覆盖厂家 ROM 界面。参数和使用方法见 [模拟器文档](radio-simulator.md)。
 
 ## 对话流程
 
@@ -18,7 +18,7 @@
 | 008 | short-answer | 短回答 | 正文从首行开始 |
 | 009 | long-answer | 长回答 / 翻行 | 四行大字 · 上下键翻看 |
 | 010 | finished | 播报完成 | 3 秒保留 · 翻看延长至 5 秒 |
-| 177 | followup-topic | 追问主题 | 待机标题显示上一轮用户发言的六字主题 |
+| 185 | followup-topic | 追问主题 | 待机标题显示上一轮用户发言的六字主题 |
 
 ## 边界与反馈
 
@@ -209,59 +209,72 @@
 | 133 | launcher-settings | 桌面：设备设置 | 独立桌面的网络状态与系统信息 |
 | 134 | launcher-network | 桌面：网络状态 | 仅本机网络信息，不触发语音检查 |
 | 135 | launcher-system | 桌面：系统状态 | 设备状态不依赖语音配置 |
+| 136 | launcher-settings-update | 桌面：设备设置 · 软件更新 | 设备设置第三项进入 OTA 更新 |
+
+## 软件更新
+
+| 编号 | 稳定 ID | 场景 | 检查重点 |
+| --- | --- | --- | --- |
+| 137 | ota-checking | OTA：检查更新中 | 请求 GitHub Release 清单时的等待画面 |
+| 138 | ota-up-to-date | OTA：已是最新版本 | 全部应用已与最新 Release 一致 |
+| 139 | ota-available | OTA：发现新版本 | 检测到新发布版，按确定开始静默安装 |
+| 140 | ota-downloading | OTA：下载进度 | 下载并校验全部待更新 APK |
+| 141 | ota-installing | OTA：静默安装进度 | 通过 Device Owner 静默安装，无需系统弹窗确认 |
+| 142 | ota-completed | OTA：更新完成 | 全部应用静默安装完成 |
+| 143 | ota-error | OTA：更新失败 | 网络、校验或静默权限异常提示 |
 
 ## 手机配网
 
 | 编号 | 稳定 ID | 场景 | 检查重点 |
 | --- | --- | --- | --- |
-| 136 | home-ble | 桌面手机配网入口 | 第四个入口 |
-| 137 | ble-starting | 开启蓝牙 | 固定中文数据验证，不修改 Wi-Fi |
-| 138 | ble-ready | 等待手机 | 固定中文数据验证，不修改 Wi-Fi |
-| 139 | ble-connected | 手机连接 | 固定中文数据验证，不修改 Wi-Fi |
-| 140 | ble-passed | 收发通过 | 固定中文数据验证，不修改 Wi-Fi |
-| 141 | ble-failed | 测试失败 | 固定中文数据验证，不修改 Wi-Fi |
-| 142 | ble-unavailable | 蓝牙不可用 | 固定中文数据验证，不修改 Wi-Fi |
-| 143 | ble-expired | 验证过期 | 固定中文数据验证，不修改 Wi-Fi |
-| 144 | manager-enabled | 后台管理已开启 | 已绑定手台的后台管理授权 |
-| 145 | manager-enable | 启用后台管理 | 已绑定手台的后台管理授权 |
-| 146 | manager-disable | 关闭后台管理 | 已绑定手台的后台管理授权 |
-| 147 | manager-revoke | 解除绑定 | 已绑定手台的后台管理授权 |
-| 148 | wifi-pair | 核对确认码 | 物理授权、加密凭据和实际连接结果 |
-| 149 | wifi-approved | 手台已授权 | 物理授权、加密凭据和实际连接结果 |
-| 150 | wifi-connecting | 正在连接Wi-Fi | 物理授权、加密凭据和实际连接结果 |
-| 151 | wifi-success | 配网成功 | 物理授权、加密凭据和实际连接结果 |
-| 152 | wifi-auth | 认证失败 | 物理授权、加密凭据和实际连接结果 |
-| 153 | wifi-timeout | 配网超时 | 物理授权、加密凭据和实际连接结果 |
-| 154 | wifi-cancelled | 取消配网 | 物理授权、加密凭据和实际连接结果 |
-| 155 | wifi-wifiFailed | 保存或系统失败 | 物理授权、加密凭据和实际连接结果 |
+| 144 | home-ble | 桌面手机配网入口 | 第四个入口 |
+| 145 | ble-starting | 开启蓝牙 | 固定中文数据验证，不修改 Wi-Fi |
+| 146 | ble-ready | 等待手机 | 固定中文数据验证，不修改 Wi-Fi |
+| 147 | ble-connected | 手机连接 | 固定中文数据验证，不修改 Wi-Fi |
+| 148 | ble-passed | 收发通过 | 固定中文数据验证，不修改 Wi-Fi |
+| 149 | ble-failed | 测试失败 | 固定中文数据验证，不修改 Wi-Fi |
+| 150 | ble-unavailable | 蓝牙不可用 | 固定中文数据验证，不修改 Wi-Fi |
+| 151 | ble-expired | 验证过期 | 固定中文数据验证，不修改 Wi-Fi |
+| 152 | manager-enabled | 后台管理已开启 | 已绑定手台的后台管理授权 |
+| 153 | manager-enable | 启用后台管理 | 已绑定手台的后台管理授权 |
+| 154 | manager-disable | 关闭后台管理 | 已绑定手台的后台管理授权 |
+| 155 | manager-revoke | 解除绑定 | 已绑定手台的后台管理授权 |
+| 156 | wifi-pair | 核对确认码 | 物理授权、加密凭据和实际连接结果 |
+| 157 | wifi-approved | 手台已授权 | 物理授权、加密凭据和实际连接结果 |
+| 158 | wifi-connecting | 正在连接Wi-Fi | 物理授权、加密凭据和实际连接结果 |
+| 159 | wifi-success | 配网成功 | 物理授权、加密凭据和实际连接结果 |
+| 160 | wifi-auth | 认证失败 | 物理授权、加密凭据和实际连接结果 |
+| 161 | wifi-timeout | 配网超时 | 物理授权、加密凭据和实际连接结果 |
+| 162 | wifi-cancelled | 取消配网 | 物理授权、加密凭据和实际连接结果 |
+| 163 | wifi-wifiFailed | 保存或系统失败 | 物理授权、加密凭据和实际连接结果 |
 
 ## 音频互联
 
 | 编号 | 稳定 ID | 场景 | 检查重点 |
 | --- | --- | --- | --- |
-| 156 | link-ready | 等待 PTT | 首页 · 蓝牙配对获焦 |
-| 157 | link-mode-focus | 选择讲话模式 | 首页 · 模式项获焦 |
-| 158 | link-starting | 正在启用 | 蓝牙角色切换中 |
-| 159 | link-failed | 启用失败 | 保留错误原因，可重新启用 |
-| 160 | link-modes | 普通 PTT 已选 | 讲话模式 · 当前模式已勾选 |
-| 161 | link-choose-fn | 选择 Fn 首尾点按 | 焦点移至第二项，普通 PTT 仍已选 |
-| 162 | link-fn | Fn 首尾点按已选 | 讲话模式 · 第二项已勾选 |
-| 163 | link-fn-home | Fn 模式待机 | 首页 · 已启用 Fn 首尾点按 |
-| 164 | link-fn-keyboard | 请在电脑连接键盘 | 首页 · 讲话状态 |
-| 165 | link-fn-delay | 等待 Fn 和语音延迟 | 首页 · 讲话状态 |
-| 166 | link-waiting | 等待电脑收音 | 首页 · 讲话状态 |
-| 167 | link-talking | 正在传音 | 首页 · 讲话状态 |
-| 168 | link-discoverable | 手台可被发现 120 秒 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
-| 169 | link-already | 手台已可被发现 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
-| 170 | link-disabled | 蓝牙尚未开启 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
-| 171 | link-unavailable | 系统未提供蓝牙配对入口 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
-| 172 | link-media-volume | 媒体音量 | 首页 · 模式项获焦 · 媒体音量 3/5 |
-| 173 | link-call-volume | 通话音量 | 讲话中 · HFP 扬声器音量 7/15 |
-| 174 | link-mode-volume | 模式页音量 | 讲话模式 · 媒体音量 3/5 |
+| 164 | link-ready | 等待 PTT | 首页 · 蓝牙配对获焦 |
+| 165 | link-mode-focus | 选择讲话模式 | 首页 · 模式项获焦 |
+| 166 | link-starting | 正在启用 | 蓝牙角色切换中 |
+| 167 | link-failed | 启用失败 | 保留错误原因，可重新启用 |
+| 168 | link-modes | 普通 PTT 已选 | 讲话模式 · 当前模式已勾选 |
+| 169 | link-choose-fn | 选择 Fn 首尾点按 | 焦点移至第二项，普通 PTT 仍已选 |
+| 170 | link-fn | Fn 首尾点按已选 | 讲话模式 · 第二项已勾选 |
+| 171 | link-fn-home | Fn 模式待机 | 首页 · 已启用 Fn 首尾点按 |
+| 172 | link-fn-keyboard | 请在电脑连接键盘 | 首页 · 讲话状态 |
+| 173 | link-fn-delay | 等待 Fn 和语音延迟 | 首页 · 讲话状态 |
+| 174 | link-waiting | 等待电脑收音 | 首页 · 讲话状态 |
+| 175 | link-talking | 正在传音 | 首页 · 讲话状态 |
+| 176 | link-discoverable | 手台可被发现 120 秒 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
+| 177 | link-already | 手台已可被发现 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
+| 178 | link-disabled | 蓝牙尚未开启 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
+| 179 | link-unavailable | 系统未提供蓝牙配对入口 | 配对操作反馈 · 系统提示外观由 ROM 决定 |
+| 180 | link-media-volume | 媒体音量 | 首页 · 模式项获焦 · 媒体音量 3/5 |
+| 181 | link-call-volume | 通话音量 | 讲话中 · HFP 扬声器音量 7/15 |
+| 182 | link-mode-volume | 模式页音量 | 讲话模式 · 媒体音量 3/5 |
 
 ## 频道
 
 | 编号 | 稳定 ID | 场景 | 检查重点 |
 | --- | --- | --- | --- |
-| 175 | channel-custom | 自定义频道 | 下侧键显示配置名称，按配置顺序循环 |
-| 176 | channel-long | 长频道名 | 名称较长时收在底部单行内 |
+| 183 | channel-custom | 自定义频道 | 下侧键显示配置名称，按配置顺序循环 |
+| 184 | channel-long | 长频道名 | 名称较长时收在底部单行内 |

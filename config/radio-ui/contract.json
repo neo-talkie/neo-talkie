@@ -198,7 +198,36 @@
     "ble_options_key": "选项",
     "ble_cancel_key": "EXIT 取消",
     "manager_switch_hint": "上下切换其他选项",
-    "wifi_failure_hint": "请查看手机提示"
+    "wifi_failure_hint": "请查看手机提示",
+    "ota_update": "软件更新",
+    "ota_checking": "正在检查更新…",
+    "ota_github_hint": "连接 GitHub 发布源",
+    "ota_up_to_date": "已是最新版本",
+    "ota_current_prefix": "当前 ",
+    "ota_all_latest_suffix": "个应用均为最新",
+    "ota_found_title": "发现新版本",
+    "ota_apps_prefix": "共 ",
+    "ota_apps_suffix": " 个应用",
+    "ota_confirm_hint": "按确定静默安装",
+    "ota_updating_title": "正在更新",
+    "ota_downloading": "下载",
+    "ota_installing": "安装",
+    "ota_silent_installing": "静默安装中",
+    "ota_keep_power": "安装中请勿断电",
+    "ota_completed_title": "更新完成",
+    "ota_completed_body": "全部应用已更新",
+    "ota_completed_hint": "按返回继续使用",
+    "ota_failed_title": "更新失败",
+    "ota_no_release": "暂无可用发布版",
+    "ota_no_permission": "未开启静默安装",
+    "ota_adb_hint": "请先通过ADB激活权限",
+    "ota_verify_failed": "安装包校验失败",
+    "ota_sign_conflict": "签名不一致",
+    "ota_sign_hint": "请用同签名包更新",
+    "ota_storage_error": "存储空间不足",
+    "ota_install_failed": "静默安装失败",
+    "ota_update_key": "MENU 更新",
+    "ota_recheck_key": "MENU 重检"
   },
   "states": {
     "idle": {
@@ -305,7 +334,8 @@
     "diagnostics": "网络测试分页",
     "menu": "功能菜单",
     "ble": "蓝牙连通验证",
-    "audioLink": "音频互联"
+    "audioLink": "音频互联",
+    "ota": "软件更新"
   },
   "services": [
     "text_118",
@@ -599,6 +629,7 @@
   ],
   "deviceMenu": [
     "network_status",
-    "system_status"
+    "system_status",
+    "ota_update"
   ]
 }

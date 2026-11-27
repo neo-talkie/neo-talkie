@@ -1369,6 +1369,94 @@
     "owner": "launcher"
   },
   {
+    "id": "launcher-settings-update",
+    "name": "桌面：设备设置 · 软件更新",
+    "group": "桌面",
+    "note": "设备设置第三项进入 OTA 更新",
+    "view": "menu",
+    "owner": "launcher",
+    "selected": 2
+  },
+  {
+    "id": "ota-checking",
+    "name": "OTA：检查更新中",
+    "group": "软件更新",
+    "note": "请求 GitHub Release 清单时的等待画面",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "checking"
+  },
+  {
+    "id": "ota-up-to-date",
+    "name": "OTA：已是最新版本",
+    "group": "软件更新",
+    "note": "全部应用已与最新 Release 一致",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "upToDate",
+    "otaVersion": "v0.2.3",
+    "otaCount": 3
+  },
+  {
+    "id": "ota-available",
+    "name": "OTA：发现新版本",
+    "group": "软件更新",
+    "note": "检测到新发布版，按确定开始静默安装",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "available",
+    "otaVersion": "v0.2.4",
+    "otaCount": 3,
+    "otaSize": "2.4MB"
+  },
+  {
+    "id": "ota-downloading",
+    "name": "OTA：下载进度",
+    "group": "软件更新",
+    "note": "下载并校验全部待更新 APK",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "updating",
+    "otaProgress": 42,
+    "otaInstalling": false,
+    "otaStage": "下载 对讲 (1/3)",
+    "otaDetail": "1.0/2.4MB"
+  },
+  {
+    "id": "ota-installing",
+    "name": "OTA：静默安装进度",
+    "group": "软件更新",
+    "note": "通过 Device Owner 静默安装，无需系统弹窗确认",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "updating",
+    "otaProgress": 86,
+    "otaInstalling": true,
+    "otaStage": "安装 对讲 (2/3)",
+    "otaDetail": "静默安装中"
+  },
+  {
+    "id": "ota-completed",
+    "name": "OTA：更新完成",
+    "group": "软件更新",
+    "note": "全部应用静默安装完成",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "completed",
+    "otaVersion": "v0.2.4"
+  },
+  {
+    "id": "ota-error",
+    "name": "OTA：更新失败",
+    "group": "软件更新",
+    "note": "网络、校验或静默权限异常提示",
+    "view": "ota",
+    "owner": "launcher",
+    "otaStatus": "error",
+    "otaStage": "未开启静默安装",
+    "otaDetail": "请先通过ADB激活权限"
+  },
+  {
     "id": "home-ble",
     "group": "手机配网",
     "name": "桌面手机配网入口",

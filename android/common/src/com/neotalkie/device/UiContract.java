@@ -2,7 +2,7 @@
 package com.neotalkie.device;
 
 final class UiContract {
-  static final String HASH="3eaf8d2646952b6c2cb8f11e2dcd51d166fe7692103d539026a8dfd77c22647d";
+  static final String HASH="e4611e932325394dd5262e20dbc83f006f93fbf9bc42fafd35d2ce3e04ffd503";
   static final String T_TEXT_000="";
   static final String T_TEXT_001=" 分钟";
   static final String T_TEXT_003=" 未通过";
@@ -200,6 +200,35 @@ final class UiContract {
   static final String T_BLE_CANCEL_KEY="EXIT 取消";
   static final String T_MANAGER_SWITCH_HINT="上下切换其他选项";
   static final String T_WIFI_FAILURE_HINT="请查看手机提示";
+  static final String T_OTA_UPDATE="软件更新";
+  static final String T_OTA_CHECKING="正在检查更新…";
+  static final String T_OTA_GITHUB_HINT="连接 GitHub 发布源";
+  static final String T_OTA_UP_TO_DATE="已是最新版本";
+  static final String T_OTA_CURRENT_PREFIX="当前 ";
+  static final String T_OTA_ALL_LATEST_SUFFIX="个应用均为最新";
+  static final String T_OTA_FOUND_TITLE="发现新版本";
+  static final String T_OTA_APPS_PREFIX="共 ";
+  static final String T_OTA_APPS_SUFFIX=" 个应用";
+  static final String T_OTA_CONFIRM_HINT="按确定静默安装";
+  static final String T_OTA_UPDATING_TITLE="正在更新";
+  static final String T_OTA_DOWNLOADING="下载";
+  static final String T_OTA_INSTALLING="安装";
+  static final String T_OTA_SILENT_INSTALLING="静默安装中";
+  static final String T_OTA_KEEP_POWER="安装中请勿断电";
+  static final String T_OTA_COMPLETED_TITLE="更新完成";
+  static final String T_OTA_COMPLETED_BODY="全部应用已更新";
+  static final String T_OTA_COMPLETED_HINT="按返回继续使用";
+  static final String T_OTA_FAILED_TITLE="更新失败";
+  static final String T_OTA_NO_RELEASE="暂无可用发布版";
+  static final String T_OTA_NO_PERMISSION="未开启静默安装";
+  static final String T_OTA_ADB_HINT="请先通过ADB激活权限";
+  static final String T_OTA_VERIFY_FAILED="安装包校验失败";
+  static final String T_OTA_SIGN_CONFLICT="签名不一致";
+  static final String T_OTA_SIGN_HINT="请用同签名包更新";
+  static final String T_OTA_STORAGE_ERROR="存储空间不足";
+  static final String T_OTA_INSTALL_FAILED="静默安装失败";
+  static final String T_OTA_UPDATE_KEY="MENU 更新";
+  static final String T_OTA_RECHECK_KEY="MENU 重检";
   static final int WIDTH=160;
   static final int HEIGHT=128;
   static final int LEFT=6;
@@ -279,11 +308,13 @@ final class UiContract {
   static final int IDLE_SCREEN_MS=40000;
   static final int BLE_SESSION_MS=300000;
   static final String[] MENU={T_NETWORK_TEST,T_SYSTEM_STATUS};
-  static final String[] DEVICE_MENU={T_NETWORK_STATUS,T_SYSTEM_STATUS};
+  static final String[] DEVICE_MENU={T_NETWORK_STATUS,T_SYSTEM_STATUS,T_OTA_UPDATE};
   static final String[] SERVICES={T_TEXT_118,T_TEXT_116,T_TEXT_117};
   static final int MENU_NETWORK=0;
   static final int MENU_SYSTEM=1;
-  static int menuSelection(int index,int direction) { return Math.max(0,Math.min(MENU.length-1,index+direction)); }
+  static final int MENU_UPDATE=2;
+  static int menuSelection(int index,int direction) { return menuSelection(index,direction,MENU.length); }
+  static int menuSelection(int index,int direction,int count) { return Math.max(0,Math.min(count-1,index+direction)); }
   static final int[][] PAGE_ARROWS={{3,0,1,1},{2,1,3,1},{1,2,5,1},{0,3,7,1},{0,7,7,1},{1,8,5,1},{2,9,3,1},{3,10,1,1}};
   static final int[][] DIGITS={{7,5,5,5,7},{2,6,2,2,7},{7,1,7,4,7},{7,1,7,1,7},{5,5,7,1,1},{7,4,7,1,7},{7,4,7,5,7},{7,1,2,2,2},{7,5,7,5,7},{7,5,7,1,7}};
   static final int[] BOLT={6,6,12,12,24,31,62,12,12,24,16,16};

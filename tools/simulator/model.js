@@ -11,6 +11,7 @@ import {
   PHASES,
   ANDROID_BASELINE,
   MENU,
+  DEVICE_MENU,
   menuSelection,
   SCENARIOS,
   MS,
@@ -107,6 +108,14 @@ export function createState(input = {}) {
     bleStatus: ["starting","ready","connected","passed","failed","unavailable","expired","pair","approved","connecting","success","auth","timeout","cancelled","wifiFailed"].includes(input.bleStatus) ? input.bleStatus : "ready",
     pairingCode: /^[A-F0-9]{6} [A-F0-9]{6}$/.test(input.pairingCode) ? input.pairingCode : "A1B2C3 D4E5F6",
     bleUntil: number(input.bleUntil,0,Number.MAX_SAFE_INTEGER,MS.BLE_SESSION_MS),
+    otaStatus: ["checking","upToDate","available","updating","completed","error"].includes(input.otaStatus) ? input.otaStatus : "checking",
+    otaProgress: Math.round(number(input.otaProgress, 0, 100, 0)),
+    otaInstalling: input.otaInstalling === true,
+    otaVersion: typeof input.otaVersion === "string" ? input.otaVersion.slice(0, 32) : "v0.2.4",
+    otaCount: Math.round(number(input.otaCount, 1, 20, 3)),
+    otaSize: typeof input.otaSize === "string" ? input.otaSize.slice(0, 24) : "2.4MB",
+    otaStage: typeof input.otaStage === "string" ? input.otaStage.slice(0, 40) : "",
+    otaDetail: typeof input.otaDetail === "string" ? input.otaDetail.slice(0, 40) : "",
     homeLabels:
       Array.isArray(input.homeLabels) && input.homeLabels.length
         ? input.homeLabels.slice(0, 8).map((v) => String(v).slice(0, 80))
@@ -149,7 +158,7 @@ export function createState(input = {}) {
   if (state.view === "home" || state.view === "external")
     state.selected = Math.min(state.selected, state.homeLabels.length - 1);
   if (state.view === "menu")
-    state.selected = Math.min(state.selected, MENU.length - 1);
+    state.selected = Math.min(state.selected, (state.owner === "launcher" ? DEVICE_MENU : MENU).length - 1);
   if (view === "audioLink") {
     state.owner = "audio-link";
     state.linkDeviceName = String(input.linkDeviceName || "NeoTalkie-1234").slice(0, 80);
@@ -303,6 +312,7 @@ export function act(state, action, now = 0, maxOffset = 0) {
   if (s.view === "sleep") return s;
   if (action === "home") return { ...ready(s), view: "home", owner: "launcher", selected: 0 };
   if (action === "back" && s.view === "home") return s;
+  if (action === "back" && s.view === "ota" && s.otaStatus === "updating" && s.otaInstalling) return s;
   if (action === "back" && s.view === "ble" && s.policyAction) return {...s,policyAction:0};
   if (action === "back") {
     if (s.view === "main") {
@@ -395,7 +405,7 @@ export function act(state, action, now = 0, maxOffset = 0) {
     if (s.view === "ble" && s.hasBinding)
       return {...s,policyAction:(s.policyAction+d+3)%3};
     if (s.view === "menu")
-      return { ...s, selected: menuSelection(s.selected, d) };
+      return { ...s, selected: menuSelection(s.selected, d, s.owner === "launcher" ? DEVICE_MENU.length : MENU.length) };
     if (s.view === "home")
       return {
         ...s,
@@ -431,7 +441,11 @@ export function act(state, action, now = 0, maxOffset = 0) {
     if (s.view === "main")
       return { ...ready(s), view: "menu", owner: "talk", selected: 0, volumeUntil: 0 };
     if (s.view === "menu") {
-      if (MENU[s.selected].id === "system")
+      const items = s.owner === "launcher" ? DEVICE_MENU : MENU;
+      const picked = items[s.selected] || items[0];
+      if (picked.id === "update")
+        return { ...s, view: "ota", otaStatus: "checking", otaProgress: 0, otaInstalling: false };
+      if (picked.id === "system")
         return { ...s, view: "device", page: 0 };
       if (s.owner === "launcher") return { ...s, view: "network", page: 0 };
       return {
@@ -445,6 +459,13 @@ export function act(state, action, now = 0, maxOffset = 0) {
         stageAt: now + 1800,
       };
     }
+    if (s.view === "ota") {
+      if (s.otaStatus === "available")
+        return { ...s, otaStatus: "updating", otaProgress: 42, otaInstalling: false, otaStage: "下载 对讲 (1/3)", otaDetail: "1.0/" + s.otaSize };
+      if (s.otaStatus === "upToDate" || s.otaStatus === "error")
+        return { ...s, otaStatus: "checking", otaProgress: 0, otaInstalling: false };
+      return s;
+    }
     if (s.view === "checks") return s;
     if (s.view === "home")
       return { ...ready(s), view: ["main", "menu", "external", "ble"][s.selected] || "external", owner: s.selected === 0 ? "talk" : "launcher", selected: 0, bleStatus:"ready",bleUntil:now+MS.BLE_SESSION_MS };
@@ -456,7 +477,9 @@ export function tick(state, now) {
   if (s.hasContext && now >= s.contextUntil) s.hasContext = false;
   if (s.view === "sleep") return s;
   if(s.view === "ble" && s.bleStatus !== "expired" && now >= s.bleUntil) { s.bleStatus="expired";s.idleSince=now; }
-  const busy = (s.view === "ble" && s.bleStatus !== "expired") || (s.view === "main" && ["listening", "recognizing", "thinking", "searching", "synthesizing", "speaking"].includes(s.phase))
+  const busy = (s.view === "ble" && s.bleStatus !== "expired")
+    || (s.view === "ota" && ["checking", "updating"].includes(s.otaStatus))
+    || (s.view === "main" && ["listening", "recognizing", "thinking", "searching", "synthesizing", "speaking"].includes(s.phase))
     || (["checks", "diagnostics"].includes(s.view) && s.stageAt > 0);
   if (busy) s.idleSince = now;
   else if (s.view !== "external" && now - s.idleSince >= MS.IDLE_SCREEN_MS)

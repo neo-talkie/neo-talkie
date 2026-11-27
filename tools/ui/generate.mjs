@@ -83,7 +83,10 @@ for (const [name, value] of Object.entries({
   NATIVE_STATES: c.nativeStates.map(string),
   VIEWS: c.views,
   MENU: c.menu.map((f) => ({ ...f, title: string(f.title) })),
-  DEVICE_MENU: c.deviceMenu.map((title, i) => ({ id: c.menu[i].id, title: string(title) })),
+  DEVICE_MENU: c.deviceMenu.map((title, i) => ({
+    id: c.menu[i]?.id ?? (title === "ota_update" ? "update" : title),
+    title: string(title),
+  })),
   SERVICES: c.services.map(string),
   CHECK_ERRORS: c.checkErrors.map(string),
   EVENTS: c.events,
@@ -93,7 +96,7 @@ for (const [name, value] of Object.entries({
 }))
   js += `export const ${name}=Object.freeze(${JSON.stringify(value, null, 2)});\n`;
 js += `export function phaseForEvent(event){if(!Object.hasOwn(EVENTS,event))throw Error('Unknown UI event: '+event);return EVENTS[event];}\nexport function stateId(label){const id=Object.keys(PHASES).find(k=>PHASES[k]===label);if(!id)throw Error('Unknown UI state: '+label);return id;}\nexport function stage(phase){if(!STATE_META[phase])throw Error('Unknown UI phase: '+phase);return STATE_META[phase].stage;}\n`;
-js += `export function menuSelection(index,direction){return Math.max(0,Math.min(MENU.length-1,index+direction));}\n`;
+js += `export function menuSelection(index,direction,count=MENU.length){return Math.max(0,Math.min(count-1,index+direction));}\n`;
 let java = banner + "package com.neotalkie.device;\n\nfinal class UiContract {\n";
 java += `  static final String HASH=${j(hash)};\n`;
 for (const [key, value] of Object.entries(c.copy))
@@ -113,7 +116,11 @@ for (const [name, list] of Object.entries({
 c.menu.forEach((f, i) => {
   java += `  static final int MENU_${f.id.toUpperCase()}=${i};\n`;
 });
-java += `  static int menuSelection(int index,int direction) { return Math.max(0,Math.min(MENU.length-1,index+direction)); }\n`;
+c.deviceMenu.forEach((k, i) => {
+  if (k === "ota_update") java += `  static final int MENU_UPDATE=${i};\n`;
+});
+java += `  static int menuSelection(int index,int direction) { return menuSelection(index,direction,MENU.length); }\n`;
+java += `  static int menuSelection(int index,int direction,int count) { return Math.max(0,Math.min(count-1,index+direction)); }\n`;
 java += `  static final int[][] PAGE_ARROWS={${c.graphics.pageArrows.map((r) => "{" + r.join(",") + "}").join(",")}};\n`;
 java += `  static final int[][] DIGITS={${c.graphics.digits.map((r) => "{" + r.join(",") + "}").join(",")}};\n  static final int[] BOLT={${c.graphics.bolt.join(",")}};\n`;
 java += "  static String phaseForEvent(String event) {\n    switch(event) {\n";

@@ -12,7 +12,7 @@ for name in names:
     assert len(candidates) == 1, name
     sources += candidates
 sources += list((APP / 'tests').rglob('*.java'))
-sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession','LanHandshake']]
+sources += [ROOT / ('android/launcher/src/com/neotalkie/device/'+name+'.java') for name in ['BleProbeProtocol','WifiProvisionSession','LanHandshake','OtaManifest']]
 sources += list((ROOT / 'android/launcher/tests').rglob('*.java'))
 for name in ['PttSequence', 'AudioRoleSwitch']:
     sources.append(ROOT / 'android/audio-link/src/com/neotalkie/audiolink' / (name + '.java'))
@@ -34,6 +34,7 @@ run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.PttLeaseTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.BleProbeProtocolTest')
 
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.LanHandshakeTest')
+run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.device.OtaManifestTest')
 
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.audiolink.PttSequenceTest')
 run(JAVA / 'bin/java', '-cp', dest, 'com.neotalkie.audiolink.AudioRoleSwitchTest')

@@ -1,8 +1,12 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="NeoTalkie — 唤醒经典对讲机，可自由魔改的语音 AI 硬件" width="100%" />
+</p>
+
 # NeoTalkie
 
-**把一台不到 300 元的安卓对讲机，变成开箱即用、可自由魔改的 AI 硬件。**
+**把一台不到 300 元的安卓对讲机，变成开箱即用、可自由魔改的 AI 硬件——尤其为语音交互而生。**
 
-> An open-source, pixel-styled device software suite that turns an off-the-shelf Android walkie-talkie into a genuinely fun, hackable AI hardware platform.
+> An open-source, pixel-styled device software suite that turns an off-the-shelf Android walkie-talkie into a genuinely fun, voice-first hackable AI hardware platform.
 
 [为什么做](#为什么做-neotalkie) · [演示](#演示demo) · [硬件与购买](#硬件与购买渠道) · [项目与架构](#项目内容与架构) · [快速启动](#快速启动) · [维护与合作](#维护与开源说明)
 
@@ -16,7 +20,8 @@
 
 这类小屏安卓手台长期活跃在**海外出口市场**，原本主要给海外用户安装 Zello 等公网对讲应用。它在国内大众市场从未火过，在全球创客与开源硬件圈里也几乎没人留意过。但当我们真正拿到手里、深入折腾完之后，非常有信心告诉大家：**这是一台被严重低估的宝藏硬件，完全值得作为你折腾 AI 硬件的第一块底座！**
 
-- **开箱即用的满配成品，省掉所有硬件拼装烦恼**：无需画板、无需 3D 打印、无需手动组装。买回来就是一台工业设计拉满的成熟整机——扎实趁手的机身质感、超爽的侧面实体 PTT 大按键、阻尼明确的物理音量旋钮、大功率洪亮扬声器、顶格电池续航，再加上齐全的 Wi-Fi / 蓝牙 / 蜂窝通信与音频硬件。个人 DIY 几乎不可能用这么低的成本做出这样的完成度。
+- **天生适合语音交互，久经验证的经典形态**：作为一台可自由魔改的 AI 硬件，它**尤其适用于语音交互**。对讲机的整个外形设计与工程原理——单手盲操握持、拇指自然贴合的侧面大 PTT 键、按住说话松手发送的清晰交互边界、专为人声外放调校的大功率声学腔体与物理音量旋钮——本身就是几十年来在无数真实场景中**久经验证的语音交互形态**，比解锁手机找按钮或依赖容易误触发的唤醒词顺手得多。
+- **开箱即用的满配成品，省掉所有硬件拼装烦恼**：无需画板、无需 3D 打印、无需手动组装。买回来就是一台工业设计拉满的成熟整机——扎实趁手的机身质感、超爽的实体按键与旋钮手感、顶格电池续航，再加上齐全的 Wi-Fi / 蓝牙 / 蜂窝通信与音频硬件。个人 DIY 几乎不可能用这么低的成本做出这样的完成度。
 - **原生 Android 底子，上手极易、折腾上限极高**：它不是封闭受限的单片机，而是一台正经跑 Android 的设备（当前主力验证机型为 Android 5.1）。插上 USB 就能 ADB 调试、写原生代码、自由装 APK——从零上手的门槛极低，但可玩性和扩展上限几乎没有天花板。
 
 过去，这类设备一直安静地服务于传统公网对讲场景，**还没有人真正去关注过：如何把这块小屏、这组实体按键和整套安卓底子的潜力发挥到最佳，把它变成 AI 时代更好玩的东西。**
@@ -204,7 +209,7 @@ make test
 ### 完整文档
 
 - **入门与上手**：[开发总览与约束](AGENTS.md) · [新设备启用](docs/getting-started.md) · [Android 工程与音频互联说明](android/README.md) · [开发工具](tools/README.md)
-- **架构与协议**：[系统架构与模块边界](docs/architecture.md) · [BLE 配网与后台管理](docs/ble-provisioning.md) · [手台配置服务约定](docs/device-configuration.md)
+- **架构与协议**：[系统架构与模块边界](docs/architecture.md) · [BLE 配网与后台管理](docs/ble-provisioning.md) · [手台配置服务约定](docs/device-configuration.md) · [OTA 静默更新与发布流水线](docs/ota.md) · [项目 Backlog](docs/backlog.md)
 - **界面与校验**：[UI 一致性契约](docs/radio-ui-contract.md) · [离线模拟器](docs/radio-simulator.md) · [场景目录](docs/radio-simulator-states.md) · [真机验收记录](docs/verification.md)
 
 ---

@@ -48,7 +48,20 @@ public final class ManagementService extends Service {
     return true;
   }
   public static final class Restore extends BroadcastReceiver {
-    public void onReceive(Context c, Intent intent) { restore(c); }
+    public void onReceive(Context c, Intent intent) {
+      if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
+        OtaUpdater.cleanup(c);
+        String updated = OtaUpdater.consumePendingSelfUpdate(c);
+        if (!updated.isEmpty()) {
+          Intent done = new Intent(c, StatusActivity.class);
+          done.putExtra("page", "ota_done");
+          done.putExtra("version", updated);
+          done.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+          try { c.startActivity(done); } catch (RuntimeException ignored) {}
+        }
+      }
+      restore(c);
+    }
   }
 
   // The setup window and the service live in the launcher process, on the main thread.

@@ -142,7 +142,7 @@ jobs:
             --tag "$TAG" \
             --version "$VERSION" \
             --repo "$REPO" \
-            --url-base "https://neotalkie-ota.pages.dev/ota/${TAG}" \
+            --url-base "https://neotalkie.com/ota/${TAG}" \
             --notes "$NOTES" \
             --output "$STAGE/ota/${TAG}/ota-manifest.json"
           cp "$STAGE/ota/${TAG}/ota-manifest.json" "$STAGE/ota/latest/ota-manifest.json"

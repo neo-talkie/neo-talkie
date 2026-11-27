@@ -8,9 +8,7 @@ import java.util.*;
 final class OtaManifest {
   static final String SCHEMA = "neotalkie-ota/v1";
   static final String PRIMARY_MANIFEST_URL =
-      "https://neotalkie-ota.pages.dev/ota/latest/ota-manifest.json";
-  static final String DOMAIN_FALLBACK_MANIFEST_URL =
-      "https://ota.neo-talkie.com/v1/ota-manifest.json";
+      "https://neotalkie.com/ota/latest/ota-manifest.json";
   static final String GITHUB_FALLBACK_MANIFEST_URL =
       "https://github.com/neo-talkie/neo-talkie/releases/latest/download/ota-manifest.json";
   static final String DEFAULT_MANIFEST_URL = PRIMARY_MANIFEST_URL;
@@ -20,8 +18,7 @@ final class OtaManifest {
       return Collections.singletonList(customUrl.trim());
     }
     return Collections.unmodifiableList(
-        Arrays.asList(
-            PRIMARY_MANIFEST_URL, DOMAIN_FALLBACK_MANIFEST_URL, GITHUB_FALLBACK_MANIFEST_URL));
+        Arrays.asList(PRIMARY_MANIFEST_URL, GITHUB_FALLBACK_MANIFEST_URL));
   }
 
   static final class PackageItem {

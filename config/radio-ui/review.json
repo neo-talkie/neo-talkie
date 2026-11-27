@@ -1,6 +1,6 @@
 {
   "schema": "neotalkie-radio-ui-review/v1",
-  "reason": "Use Cloudflare Pages as primary OTA endpoint with owned domain and GitHub fallback",
+  "reason": "Use neotalkie.com (Cloudflare Pages) as primary OTA endpoint with GitHub Releases fallback",
   "hashes": {
     "android/audio-link/AndroidManifest.xml": "049be6fb721384625a665c479817abfc01b5c52b6b9374b8db31477f08b6f397",
     "android/audio-link/mx-b5-api/android/bluetooth/BluetoothHeadsetClient.java": "7e8a9ce53c9d7eb3ecf06ceb9d61bda267f16fbcab3a2c986bbdae779a4e69fe",
@@ -40,7 +40,7 @@
     "android/launcher/src/com/neotalkie/device/ManagementEndpoint.java": "60d94c775773a3b7c768a20618b9a6a563a09ae687e294b7e0457a7a30bea3d6",
     "android/launcher/src/com/neotalkie/device/ManagementService.java": "d871a5110a56149c532a86a8a3a89e72fee979cb2795381a5e7b45617061b596",
     "android/launcher/src/com/neotalkie/device/OtaAdminReceiver.java": "f5c7d1bd2cb20c89d7ff95115f83f86527450b23aa4a07c5a3672dbf546c8510",
-    "android/launcher/src/com/neotalkie/device/OtaManifest.java": "ef2f9a22aedfba0350563856c8b3deb05918189a28dd29fb33adbfe353e148f4",
+    "android/launcher/src/com/neotalkie/device/OtaManifest.java": "987158247ca9bbda40bd6efccc50248bfe15421e380a72bb7afa11392622e027",
     "android/launcher/src/com/neotalkie/device/OtaTls.java": "cbf963646e27770e01a2e66130876f69ed7be4c71a7e3ca717b77ad324edae87",
     "android/launcher/src/com/neotalkie/device/OtaUpdater.java": "71841859a5d293ebcd1f5fb302b6a681ae48d1cf6e2468b36edca1b2d0dc877c",
     "android/launcher/src/com/neotalkie/device/PttStateProvider.java": "2061ece23fb55140353d10169aa248c57e56c14d7b9385d79b3caa75d689cff1",
